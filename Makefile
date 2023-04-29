@@ -1,13 +1,18 @@
-CC 			:= gcc
-CFLAGS 		:= -g -Wall -Wextra
+CC 			:= 	gcc
+CFLAGS 		:= 	-g -Wall -Wextra -Wpedantic \
+				-Wformat=2 -Wno-unused-parameter \
+				-Wshadow -Wwrite-strings -Wstrict-prototypes \
+				-Wold-style-definition -Wredundant-decls \
+				-Wnested-externs -Wmissing-include-dirs \
+				-Wjump-misses-init -Wlogical-op -O2
 
-RM			:= rm
-RFLAGS		:= -rf
+RM			:= 	rm
+RFLAGS		:= 	-rf
 
-SRC			:= src
+SRC			:= 	src
 
-EXEC_FILES	:= server subscriber
-O_FILES		:= server.o server_utils.o subscriber.o subscriber_utils.o
+EXEC_FILES	:= 	server subscriber
+O_FILES		:= 	server.o server_utils.o subscriber.o subscriber_utils.o
 
 .PHONY: clean
 .PRECIOUS: %.o
