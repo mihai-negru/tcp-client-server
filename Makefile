@@ -7,21 +7,18 @@ RFLAGS		:= -rf
 SRC			:= src
 
 EXEC_FILES	:= server subscriber
-O_FILES		:= server.o subscriber.o
+O_FILES		:= server.o server_utils.o subscriber.o subscriber_utils.o
 
 .PHONY: clean
+.PRECIOUS: %.o
 
 all: $(EXEC_FILES)
 
 %.o: $(SRC)/%.c
-	-@$(CC) $(CFLAGS) -c $<
+	@$(CC) $(CFLAGS) -c $<
 
-server: server.o
-	-@$(CC) $< -o $@
-
-subscriber: subscriber.o
-	-@$(CC) $< -o $@
+%: %.o %_utils.o
+	@$(CC) $^ -o $@
 
 clean:
-	-@$(RM) $(RFLAGS) $(EXEC_FILES) $(O_FILES)
-
+	@$(RM) $(RFLAGS) $(EXEC_FILES) $(O_FILES)

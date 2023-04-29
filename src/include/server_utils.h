@@ -3,4 +3,6 @@
 
 #include "./utils.h"
 
+void dummy(void);
+
 #endif /* SERVER_UTILS_H_ */

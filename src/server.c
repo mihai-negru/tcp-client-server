@@ -2,5 +2,6 @@
 
 int main(void) {
     fprintf(stderr, "I am alive\n");
+    dummy();
     return 0;
 }
