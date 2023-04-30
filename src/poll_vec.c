@@ -60,3 +60,31 @@ err_t poll_vec_add_fd(poll_vec_t *vec, int fd, short fd_events) {
 
     return OK;
 }
+
+err_t poll_vec_remove_fd(poll_vec_t *vec, int fd) {
+    if (vec == NULL) {
+        return POLL_VEC_INPUT_IS_NULL;
+    }
+
+    nfds_t remove_fd_idx = vec->nfds;
+
+    for (nfds_t iter = 0; iter < vec->nfds; ++iter) {
+        if (vec->pfds[iter].fd == fd) {
+            remove_fd_idx = iter;
+        }
+    }
+
+    if (remove_fd_idx >= vec->nfds) {
+        return POLL_VEC_REMOVE_FD_NOT_FOUND;
+    }
+
+    close(fd);
+
+    if (remove_fd_idx != vec->nfds - 1) {
+        memmove(vec + remove_fd_idx, vec + remove_fd_idx + 1, sizeof *vec->pfds * (vec->nfds - remove_fd_idx - 1));
+    }
+
+    (vec->nfds)--;
+
+    return OK;
+}

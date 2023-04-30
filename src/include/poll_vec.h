@@ -14,5 +14,6 @@ typedef struct poll_vec_s {
 err_t create_poll_vec(poll_vec_t **vec, nfds_t init_nfds);
 err_t free_poll_vec(poll_vec_t **vec);
 err_t poll_vec_add_fd(poll_vec_t *vec, int fd, short fd_events);
+err_t poll_vec_remove_fd(poll_vec_t *vec, int fd);
 
 #endif /* POLL_VEC_H_ */

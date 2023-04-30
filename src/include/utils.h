@@ -17,8 +17,10 @@
 #define KILL(msg)                       \
     do {                                \
         fprintf(stderr, "%s\n", msg);   \
-        exit(-2);                       \
+        exit(EXIT_CODE_RED);            \
     } while (0)
+
+#define loop for(;;)
 
 #define MAX_CMD_LEN 10
 #define EXIT_CODE_GREEN 0
@@ -39,11 +41,21 @@ typedef enum err_s {
     POLL_VEC_INPUT_IS_NOT_NULL,
     POLL_VEC_INPUT_IS_NULL,
     POLL_VEC_FAILED_ALLOCATION,
-    POLL_VEC_FAILED_REALLOC
+    POLL_VEC_FAILED_REALLOC,
+    POLL_VEC_REMOVE_FD_NOT_FOUND,
+
+    POLL_FAILED_TIMED_OUT,
+
+    CMD_INPUT_IS_NULL,
+    UDP_INPUT_BUF_IS_NULL,
+    UDP_INPUT_VAR_IS_NULL,
+    UDP_UNKNOWN_DATA_TYPE,
+    UDP_INPUT_IS_NULL
 } err_t;
 
 void debug_msg(const err_t error);
 void debug_msg_and_exit(const err_t error);
-uint8_t check_if_exit(char *cmd);
+
+uint32_t ipow(uint32_t base, uint8_t exp);
 
 #endif /* UTILS_H_ */
