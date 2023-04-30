@@ -72,7 +72,7 @@ err_t init_server(server_t **server, const uint16_t hport) {
         return SERVER_INPUT_IS_NOT_NULL;
     }
 
-    if (hport <= 0) {
+    if (hport == 0) {
         return INVALID_PORT_NUMBER;
     }
 
@@ -139,9 +139,6 @@ err_t free_server(server_t **server) {
     if ((server == NULL) || (*server == NULL)) {
         return SERVER_INPUT_IS_NULL;
     }
-
-    close((*server)->udp_socket);
-    close((*server)->tcp_socket);
 
     if ((*server)->poll_vec != NULL) {
         free_poll_vec(&(*server)->poll_vec);
@@ -217,7 +214,7 @@ err_t process_ready_fds(server_t *this) {
                 ssize_t udp_bytes = recv(this->udp_socket, this->buf, MAX_SERVER_BUFLEN, 0);
 
                 if (udp_bytes == 0) {
-                    if ((err = poll_vec_remove_fd(this->poll_vec, this->poll_vec->pfds[iter].fd)) != OK) {
+                    if ((err = poll_vec_remove_fd(this->poll_vec, iter)) != OK) {
                         return err;
                     }
                 } else {
@@ -226,6 +223,33 @@ err_t process_ready_fds(server_t *this) {
 
                     parse_udp_type_from(&udp_data, this->buf);
                     print_udp_type(&udp_data);
+                }
+            } else if (this->poll_vec->pfds[iter].fd == this->tcp_socket) {
+                struct sockaddr_in new_client;
+                memset(&new_client, 0, sizeof new_client);
+
+                int new_client_fd = accept(this->tcp_socket, (struct sockaddr *) &new_client, &(socklen_t){sizeof new_client});
+
+                if (new_client_fd <= 0) {
+                    return SERVER_FAILED_CONNECT_TCP;
+                } else {
+                    if ((err = poll_vec_add_fd(this->poll_vec, new_client_fd, POLLIN | POLLOUT)) != OK) {
+                        return err;
+                    }
+
+                    ssize_t conn_bytes = recv(new_client_fd, this->buf, MAX_SERVER_BUFLEN, 0);
+
+                    printf("New client %s connected from %s:%hu.\n", this->buf, inet_ntoa(new_client.sin_addr), ntohs(new_client.sin_port));
+                }
+            } else {
+                ssize_t tcp_bytes = recv(this->poll_vec->pfds[iter].fd, this->buf, MAX_SERVER_BUFLEN, 0);
+
+                if (tcp_bytes == 0) {
+                    poll_vec_remove_fd(this->poll_vec, iter);
+
+                    printf("Client %s disconnected.\n", this->buf);
+                } else {
+
                 }
             }
         }

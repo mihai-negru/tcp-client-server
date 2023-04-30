@@ -20,6 +20,11 @@
         exit(EXIT_CODE_RED);            \
     } while (0)
 
+#define DEBUG(msg)                       \
+    do {                                \
+        fprintf(stderr, "%s\n", msg);   \
+    } while (0)
+
 #define loop for(;;)
 
 #define MAX_CMD_LEN 10
@@ -29,6 +34,7 @@
 
 typedef enum err_s {
     OK,
+    OK_WITH_EXIT,
 
     SERVER_INPUT_IS_NOT_NULL,
     SERVER_INPUT_IS_NULL,
@@ -43,6 +49,7 @@ typedef enum err_s {
     POLL_VEC_FAILED_ALLOCATION,
     POLL_VEC_FAILED_REALLOC,
     POLL_VEC_REMOVE_FD_NOT_FOUND,
+    POLL_VEC_INPUT_FD_IDX_OUT_OF_BOUND,
 
     POLL_FAILED_TIMED_OUT,
 
@@ -50,7 +57,16 @@ typedef enum err_s {
     UDP_INPUT_BUF_IS_NULL,
     UDP_INPUT_VAR_IS_NULL,
     UDP_UNKNOWN_DATA_TYPE,
-    UDP_INPUT_IS_NULL
+    UDP_INPUT_IS_NULL,
+
+    SERVER_FAILED_CONNECT_TCP,
+
+    CLIENT_INPUT_IS_NOT_NULL,
+    CLIENT_INPUT_IS_NULL,
+    CLIENT_INPUT_CONNECT_IS_NULL,
+    CLIENT_FAILED_ALLOCATION,
+    CLIENT_FAILED_TCP,
+    CLIENT_FAILED_POLL_VEC
 } err_t;
 
 void debug_msg(const err_t error);

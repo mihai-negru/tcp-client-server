@@ -26,7 +26,7 @@ all: $(EXEC_FILES)
 server: server.o server_utils.o utils.o poll_vec.o udp_type.o
 	@$(CC) $^ -o $@
 
-subscriber: subscriber.o subscriber_utils.o utils.o
+subscriber: subscriber.o subscriber_utils.o utils.o poll_vec.o
 	@$(CC) $^ -o $@
 
 # %: %.o %_utils.o utils.o poll_vec.o
