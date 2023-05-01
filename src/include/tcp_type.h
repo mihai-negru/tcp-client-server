@@ -3,7 +3,7 @@
 
 #include "./utils.h"
 
-#define MAX_TCP_MSG_BUF_LEN 1024
+#define MAX_TCP_MSG_BUF_LEN 2048
 
 typedef struct __attribute__((__packed__)) tcp_msg_s {
     uint16_t len;

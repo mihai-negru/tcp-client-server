@@ -257,6 +257,21 @@ uint8_t check_if_exit(server_t *this) {
     return 0;
 }
 
+static err_t process_server_tcp_msg(server_t *this, int client_fd) {
+    char *cmd = this->recv_msg->data;
+    char *topic = this->recv_msg->data + strlen(cmd) + 1;
+
+    if (strcmp(cmd, "subscribe") == 0) {
+        return subscribe_client_to_topic(this->clients, client_fd, topic, *(uint8_t *)(this->recv_msg->data + this->recv_msg->len - 1));
+    } else if (strcmp(cmd, "unsubscribe") == 0) {
+        return unsubscribe_client_from_topic(this->clients, client_fd, topic);
+    } else {
+        return SERVER_UNKNOWN_COMMAND;
+    }
+
+    return OK;
+}
+
 err_t process_ready_fds(server_t *this) {
     if (this == NULL) {
         return SERVER_INPUT_IS_NULL;
@@ -322,7 +337,9 @@ err_t process_ready_fds(server_t *this) {
                         printf("Client %s disconnected.\n", get_client_id(this->clients, close_client_idx));
                     }
                 } else {
-                    // Here we handle the subscribe and unsubscribe commands
+                    if ((err = process_server_tcp_msg(this, this->poll_vec->pfds[iter].fd)) != OK) {
+                        debug_msg(err);
+                    }
                 }
             }
         }

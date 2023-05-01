@@ -44,6 +44,9 @@ void debug_msg(const err_t error) {
         case SERVER_FAILED_CLIENTS_VEC:
             fprintf(stderr, "[DEBUG] Could not allocate the clients vector.");
             break;
+        case SERVER_UNKNOWN_COMMAND:
+            fprintf(stderr, "[DEBUG] Could not match the client command.");
+            break;
         case POLL_VEC_INPUT_IS_NOT_NULL:
             fprintf(stderr, "[DEBUG] Input poll vecor must be NULL to allocate.");
             break;
@@ -123,7 +126,16 @@ void debug_msg(const err_t error) {
             fprintf(stderr, "[DEBUG] Client connection is already closed.");
             break;
         case CLIENTS_VEC_CLOSE_CLIENT_NOT_FOUND:
-            fprintf(stderr, "[DEBUG] Input client fd cannot be found in clients vector.");
+            fprintf(stderr, "[DEBUG] Input client fd cannot be found in clients vector for closing.");
+            break;
+        case CLIENTS_VEC_CLIENT_NOT_FOUND:
+            fprintf(stderr, "[DEBUG] Client cound not be found in the clients vector.");
+            break;
+        case CLIENTS_VEC_COUND_NOT_ADD_A_TOPIC:
+            fprintf(stderr, "[DEBUG] Cound not add a new subscribed topic for client.");
+            break;
+        case CLIENTS_VEC_COUND_NOT_FIND_TOPIC:
+            fprintf(stderr, "[DEBUG] Cound not find the topic in order to remove.");
             break;
         default:
             fprintf(stderr, "[DEBUG] Unknown command.");

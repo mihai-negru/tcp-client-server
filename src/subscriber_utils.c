@@ -201,19 +201,64 @@ err_t process_ready_fds(client_t *this) {
         } else {
 
         }
-    } else if ((this->poll_vec->pfds[1].revents & POLLOUT) != 0) {
-        // DEBUG("[CLIENT] Can send a msg to server.");
     }
 
     return OK;
 }
 
 err_t process_subscribe_cmd(client_t *this) {
-    return OK;
+    if (this == NULL) {
+        return CLIENT_INPUT_IS_NULL;
+    }
+
+    char *save_ptr = NULL;
+    char *cmd = __strtok_r(this->cmd, " \n", &save_ptr);
+    char *topic = __strtok_r(NULL, " \n", &save_ptr);
+    uint8_t sf = atoi(__strtok_r(NULL, " \n", &save_ptr));
+
+    size_t send_offset = 0;
+
+    this->send_msg->len = strlen(cmd) + 1;
+    memcpy(this->send_msg->data, cmd, this->send_msg->len);
+
+    send_offset += this->send_msg->len;
+    this->send_msg->len = strlen(topic) + 1;
+    memcpy(this->send_msg->data + send_offset, topic, this->send_msg->len);
+
+    send_offset += this->send_msg->len;
+    this->send_msg->len = sizeof sf;
+    memcpy(this->send_msg->data + send_offset, &sf, this->send_msg->len);
+
+    this->send_msg->len += send_offset;
+
+    memcpy(this->cmd, topic, strlen(topic) + 1);
+
+    return send_tcp_msg(this->tcp_socket, (void *)this->send_msg, sizeof *this->send_msg);
 }
 
 err_t process_unsubscribe_cmd(client_t *this) {
-    return OK;
+    if (this == NULL) {
+        return CLIENT_INPUT_IS_NULL;
+    }
+
+    char *save_ptr = NULL;
+    char *cmd = __strtok_r(this->cmd, " \n", &save_ptr);
+    char *topic = __strtok_r(NULL, " \n", &save_ptr);
+
+    size_t send_offset = 0;
+
+    this->send_msg->len = strlen(cmd) + 1;
+    memcpy(this->send_msg->data, cmd, this->send_msg->len);
+
+    send_offset += this->send_msg->len;
+    this->send_msg->len = strlen(topic) + 1;
+    memcpy(this->send_msg->data + send_offset, topic, this->send_msg->len);
+
+    this->send_msg->len += send_offset;
+
+    memcpy(this->cmd, topic, strlen(topic) + 1);
+
+    return send_tcp_msg(this->tcp_socket, (void *)this->send_msg, sizeof *this->send_msg);
 }
 
 cmd_line_t get_cmd_line(client_t *this) {

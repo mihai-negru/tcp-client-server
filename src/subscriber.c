@@ -28,17 +28,19 @@ int main(int argc, char **argv) {
             if (cmd == EXIT) {
                 break;
             } else if (cmd == SUBSCRIBE) {
-                DEBUG("[CLIENT] Subscribe.");
                 if ((err = process_subscribe_cmd(client)) != OK) {
                     debug_msg(err);
                     break;
                 }
+
+                printf("Subscribed to %s.\n", client->cmd);
             } else if (cmd == UNSUBSCRIBE) {
-                DEBUG("[CLIENT] Unsubscribe.");
                 if ((err = process_unsubscribe_cmd(client)) != OK) {
                     debug_msg(err);
                     break;
                 }
+
+                printf("Unsubscribed from %s.\n", client->cmd);
             } else if (cmd == NONE) {
                 err = process_ready_fds(client);
                 

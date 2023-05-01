@@ -19,7 +19,7 @@ typedef enum client_options_s {
 typedef struct client_type_s {
     char *id;
     client_status_t status;
-    client_options_t option;
+    client_options_t *options;
     int fd;
     char **topics;
     size_t topics_len;
@@ -39,7 +39,7 @@ err_t register_new_client(client_vec_t *clients, char *client_id, int client_fd)
 err_t close_active_client(client_vec_t *clients, int client_fd, size_t *client_idx);
 char* get_client_id(client_vec_t *clients, size_t client_idx);
 
-err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd, char *client_topic);
-err_t unsibscribe_client_from_topic(client_vec_t *clients, int client_fd, char *client_topic);
+err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd, char *client_topic, uint8_t client_sf);
+err_t unsubscribe_client_from_topic(client_vec_t *clients, int client_fd, char *client_topic);
 
 #endif /* CLIENT_VEC_H_ */
