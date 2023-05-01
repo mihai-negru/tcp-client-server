@@ -33,14 +33,14 @@ int main(int argc, char **argv) {
                     break;
                 }
 
-                printf("Subscribed to %s.\n", client->cmd);
+                printf("Subscribed to topic.\n");
             } else if (cmd == UNSUBSCRIBE) {
                 if ((err = process_unsubscribe_cmd(client)) != OK) {
                     debug_msg(err);
                     break;
                 }
 
-                printf("Unsubscribed from %s.\n", client->cmd);
+                printf("Unsubscribed from topic.\n");
             } else if (cmd == NONE) {
                 err = process_ready_fds(client);
                 

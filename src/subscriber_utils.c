@@ -231,8 +231,6 @@ err_t process_subscribe_cmd(client_t *this) {
 
     this->send_msg->len += send_offset;
 
-    memmove(this->cmd, topic, strlen(topic) + 1);
-
     return send_tcp_msg(this->tcp_socket, (void *)this->send_msg, sizeof *this->send_msg);
 }
 
@@ -255,8 +253,6 @@ err_t process_unsubscribe_cmd(client_t *this) {
     memcpy(this->send_msg->data + send_offset, topic, this->send_msg->len);
 
     this->send_msg->len += send_offset;
-
-    memcpy(this->cmd, topic, strlen(topic) + 1);
 
     return send_tcp_msg(this->tcp_socket, (void *)this->send_msg, sizeof *this->send_msg);
 }
