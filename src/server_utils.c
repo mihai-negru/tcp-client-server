@@ -399,13 +399,14 @@ static err_t retransmit_topics_to_client(server_t *this, int client_fd) {
                 if ((err = send_tcp_msg(client_fd, (void *)this->send_msg, sizeof *this->send_msg)) != OK) {
                     this->clients->entities[iter].ready_msgs_len = remaining_msgs;
                     debug_msg(err);
+                    
                     break;
                 }
             }
 
-            this->clients->entities[iter].ready_msgs_len = remaining_msgs;
+            this->clients->entities[iter].ready_msgs_len = 0;
             
-            break;
+            return OK;
         }
     }
 
@@ -459,8 +460,8 @@ err_t process_ready_fds(server_t *this) {
                         return SERVER_COULD_NOT_CONNECT_NEW_CLIENT;
                     } else {
                         if ((err = register_new_client(this->clients, this->recv_msg->data, new_client_fd)) != OK) {
-                            printf("Client %s already connected.\n", this->recv_msg->data);
                             poll_vec_remove_fd(this->poll_vec, this->poll_vec->nfds - 1);
+                            printf("Client %s already connected.\n", this->recv_msg->data);
                         } else {
                             printf("New client %s connected from %s:%hu.\n", this->recv_msg->data, inet_ntoa(new_client.sin_addr), ntohs(new_client.sin_port));
 

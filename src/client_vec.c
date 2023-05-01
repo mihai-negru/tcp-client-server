@@ -54,13 +54,13 @@ err_t register_new_client(client_vec_t *clients, char *client_id, int client_fd)
     }
 
     for (size_t iter = 0; iter < clients->len; ++iter) {
-        if (strncmp(clients->entities[iter].id, client_id, MAX_ID_CLIENT_LEN) == 0) {
+        if (strcmp(clients->entities[iter].id, client_id) == 0) {
             if (clients->entities[iter].status == ACTIVE) {
                 return CLIENT_VEC_CLIENT_ALREADY_CONNECTED;
             }
             
-            clients->entities[clients->len].fd = client_fd;
-            clients->entities[clients->len].status = ACTIVE;
+            clients->entities[iter].fd = client_fd;
+            clients->entities[iter].status = ACTIVE;
 
             return OK;
         }
@@ -113,7 +113,7 @@ err_t register_new_client(client_vec_t *clients, char *client_id, int client_fd)
         return CLIENTS_VEC_FAILED_REGISTER_ALLOCATION;
     }
 
-    strncpy(clients->entities[clients->len].id, client_id, MAX_ID_CLIENT_LEN - 1);
+    strcpy(clients->entities[clients->len].id, client_id);
 
     clients->entities[clients->len].fd = client_fd;
     clients->entities[clients->len].status = ACTIVE;

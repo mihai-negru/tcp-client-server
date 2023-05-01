@@ -16,7 +16,8 @@ static int init_client_tcp_socket(client_t *client, const char *ip, const uint16
     }
 
     client->send_msg->len = strlen(client->id) + 1;
-    memcpy(client->send_msg->data, client->id, client->send_msg->len);
+    strcpy(client->send_msg->data, client->id);
+    //memcpy(client->send_msg->data, client->id, client->send_msg->len);
     
     if (send_tcp_msg(client->tcp_socket, (void *)client->send_msg, sizeof *client->send_msg) != OK) {
         return -1;
@@ -97,7 +98,8 @@ err_t init_client(client_t **client, const char *id, const char *ip, const uint1
         return CLIENT_FAILED_ALLOCATION;
     }
 
-    memcpy((*client)->id, id, MAX_ID_CLIENT_LEN);
+    strcpy((*client)->id, id);
+    //memcpy((*client)->id, id, MAX_ID_CLIENT_LEN);
 
     if (init_client_buffers(*client) < 0) {
         free(*client);
