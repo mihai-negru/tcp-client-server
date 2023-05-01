@@ -199,7 +199,7 @@ err_t process_ready_fds(client_t *this) {
         } else if (err != OK) {
             return err;
         } else {
-
+            printf("%s\n", this->recv_msg->data);
         }
     }
 
