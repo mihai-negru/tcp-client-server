@@ -66,7 +66,7 @@ err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf) {
 
 err_t print_udp_type(udp_type_t *udp_type_var) {
     if (udp_type_var == NULL) {
-        return UDP_INPUT_IS_NULL;
+        return UDP_INPUT_VAR_IS_NULL;
     }
 
     fprintf(stderr, "UDP Package:\n");
