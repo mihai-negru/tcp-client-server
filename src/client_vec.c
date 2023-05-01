@@ -35,6 +35,7 @@ err_t free_clients_vec(client_vec_t **clients) {
         free((*clients)->entities[iter].topics);
         free((*clients)->entities[iter].id);
         free((*clients)->entities[iter].options);
+        free((*clients)->entities[iter].ready_msgs);
     }
 
     if ((*clients)->entities != NULL) {
@@ -83,9 +84,9 @@ err_t register_new_client(client_vec_t *clients, char *client_id, int client_fd)
     }
 
     clients->entities[clients->len].topics_len = 0;
-    clients->entities[clients->len].topic_capacity = INIT_TOPICS_CAPACITY;
-    clients->entities[clients->len].topics = malloc(sizeof *clients->entities[clients->len].topics * INIT_TOPICS_CAPACITY);
+    clients->entities[clients->len].topic_capacity = INIT_TOPICS_CAPACITY;\
 
+    clients->entities[clients->len].topics = malloc(sizeof *clients->entities[clients->len].topics * INIT_TOPICS_CAPACITY);
     if (clients->entities[clients->len].topics == NULL) {
         free(clients->entities[clients->len].id);
 
@@ -93,10 +94,21 @@ err_t register_new_client(client_vec_t *clients, char *client_id, int client_fd)
     }
 
     clients->entities[clients->len].options = malloc(sizeof *clients->entities[clients->len].options * INIT_TOPICS_CAPACITY);
-
     if (clients->entities[clients->len].options == NULL) {
         free(clients->entities[clients->len].id);
         free(clients->entities[clients->len].topics);
+
+        return CLIENTS_VEC_FAILED_REGISTER_ALLOCATION;
+    }
+
+    clients->entities[clients->len].ready_msgs_len = 0;
+    clients->entities[clients->len].ready_msgs_capacity = INIT_TOPICS_CAPACITY;
+
+    clients->entities[clients->len].ready_msgs = malloc(sizeof *clients->entities[clients->len].ready_msgs * INIT_TOPICS_CAPACITY);
+    if (clients->entities[clients->len].ready_msgs == NULL) {
+        free(clients->entities[clients->len].id);
+        free(clients->entities[clients->len].topics);
+        free(clients->entities[clients->len].options);
 
         return CLIENTS_VEC_FAILED_REGISTER_ALLOCATION;
     }
@@ -221,4 +233,32 @@ err_t unsubscribe_client_from_topic(client_vec_t *clients, int client_fd, char *
     }
 
     return CLIENTS_VEC_CLIENT_NOT_FOUND;
+}
+
+err_t add_topic_msg_for_client(client_vec_t *clients, udp_type_t *udp_msg, size_t client_idx) {
+    if (clients == NULL) {
+        return CLIENTS_VEC_INPUT_IS_NULL;
+    }
+
+    if (client_idx >= clients->len) {
+        return CLIENTS_VEC_INDEX_OUT_OF_BOUND;
+    }
+
+    if (clients->entities[client_idx].ready_msgs_len == clients->entities[client_idx].ready_msgs_capacity) {
+        udp_type_t **ready_msgs_real = realloc(
+            clients->entities[client_idx].ready_msgs,
+            sizeof *clients->entities[client_idx].ready_msgs * clients->entities[client_idx].ready_msgs_capacity * REALLOC_FACTOR);
+
+        if (ready_msgs_real == NULL) {
+            return CLIENTS_VEC_FAILED_REALLOC;
+        }
+
+        clients->entities[client_idx].ready_msgs = ready_msgs_real;
+        clients->entities[client_idx].ready_msgs_capacity *= REALLOC_FACTOR;
+    }
+
+    clients->entities[client_idx].ready_msgs[clients->entities[client_idx].ready_msgs_len] = udp_msg;
+    (clients->entities[client_idx].ready_msgs_len)++;
+
+    return OK;
 }

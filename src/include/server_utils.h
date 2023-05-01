@@ -11,6 +11,7 @@
 #define MAX_LISTEN_SOCKET 10
 #define INIT_NFDS (nfds_t)10
 #define INIT_CLIENTS 10
+#define INIT_UDP_MSGS_LEN 20
 #define EXIT_CMD "exit\0"
 #define EXIT_CMD_LEN strlen(EXIT_CMD)
 
@@ -25,6 +26,9 @@ typedef struct server_s {
     tcp_msg_t *send_msg;
     tcp_msg_t *recv_msg;
     client_vec_t *clients;
+    udp_type_t *udp_msgs;
+    size_t udp_msgs_len;
+    size_t udp_msgs_capacity;
 } server_t;
 
 err_t init_server(server_t **server, const uint16_t hport);

@@ -2,6 +2,7 @@
 #define CLIENT_VEC_H_
 
 #include "./utils.h"
+#include "./udp_type.h"
 
 #define REALLOC_FACTOR 2
 #define INIT_TOPICS_CAPACITY 10
@@ -24,6 +25,9 @@ typedef struct client_type_s {
     char **topics;
     size_t topics_len;
     size_t topic_capacity;
+    udp_type_t **ready_msgs;
+    size_t ready_msgs_len;
+    size_t ready_msgs_capacity;
 } client_type_t;
 
 typedef struct client_vec_s {
@@ -41,5 +45,7 @@ char* get_client_id(client_vec_t *clients, size_t client_idx);
 
 err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd, char *client_topic, uint8_t client_sf);
 err_t unsubscribe_client_from_topic(client_vec_t *clients, int client_fd, char *client_topic);
+
+err_t add_topic_msg_for_client(client_vec_t *clients, udp_type_t *udp_msg, size_t client_idx);
 
 #endif /* CLIENT_VEC_H_ */

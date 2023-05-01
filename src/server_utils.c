@@ -96,6 +96,18 @@ static int init_server_buffers(server_t *server) {
 
         return -1;
     }
+
+    server->udp_msgs_len = 0;
+    server->udp_msgs_capacity = INIT_UDP_MSGS_LEN;
+    server->udp_msgs = malloc(sizeof *server->udp_msgs * INIT_UDP_MSGS_LEN);
+    if (server->udp_msgs == NULL) {
+        free(server->buf);
+        free(server->cmd);
+        free(server->send_msg);
+        free(server->recv_msg);
+
+        return -1;
+    }
     
 
     memset(server->buf, 0, MAX_SERVER_BUFLEN);
@@ -132,6 +144,7 @@ err_t init_server(server_t **server, const uint16_t hport) {
         free((*server)->cmd);
         free((*server)->send_msg);
         free((*server)->recv_msg);
+        free((*server)->udp_msgs);
         free(*server);
         *server = NULL;
 
@@ -144,6 +157,7 @@ err_t init_server(server_t **server, const uint16_t hport) {
         free((*server)->cmd);
         free((*server)->send_msg);
         free((*server)->recv_msg);
+        free((*server)->udp_msgs);
         free(*server);
         *server = NULL;
 
@@ -158,6 +172,7 @@ err_t init_server(server_t **server, const uint16_t hport) {
         free((*server)->cmd);
         free((*server)->send_msg);
         free((*server)->recv_msg);
+        free((*server)->udp_msgs);
         free(*server);
         *server = NULL;
 
@@ -172,6 +187,7 @@ err_t init_server(server_t **server, const uint16_t hport) {
         free((*server)->cmd);
         free((*server)->send_msg);
         free((*server)->recv_msg);
+        free((*server)->udp_msgs);
         free_poll_vec(&(*server)->poll_vec);
         free(*server);
         *server = NULL;
@@ -205,6 +221,10 @@ err_t free_server(server_t **server) {
 
     if ((*server)->recv_msg != NULL) {
         free((*server)->recv_msg);
+    }
+
+    if ((*server)->udp_msgs != NULL) {
+        free((*server)->udp_msgs);
     }
 
     if ((*server)->clients != NULL) {
@@ -272,6 +292,126 @@ static err_t process_server_tcp_msg(server_t *this, int client_fd) {
     return OK;
 }
 
+static err_t add_server_udp_msg(server_t *this) {
+    err_t err = OK;
+
+    if (this->udp_msgs_len == this->udp_msgs_capacity) {
+        udp_type_t *udp_msgs_real = realloc(this->udp_msgs, sizeof *this->udp_msgs * this->udp_msgs_capacity * REALLOC_FACTOR);
+
+        if (udp_msgs_real == NULL) {
+            return SERVER_COULD_NOT_ADD_NEW_UDP;
+        }
+
+        this->udp_msgs = udp_msgs_real;
+        this->udp_msgs_capacity *= REALLOC_FACTOR;
+    }
+
+    memset(&this->udp_msgs[this->udp_msgs_len], 0, sizeof *this->udp_msgs);
+    if ((err = parse_udp_type_from(&this->udp_msgs[this->udp_msgs_len], this->buf)) != OK) {
+        return err;
+    }
+
+    (this->udp_msgs_len)++;
+
+    return OK;
+}
+
+static err_t pack_topic_to_tcp_msg(server_t *this, udp_type_t *msg) {
+    this->send_msg->len = snprintf(this->send_msg->data, MAX_TCP_MSG_BUF_LEN, "%s -", msg->topic);
+
+    switch (msg->type) {
+        case INT:
+            this->send_msg->len += snprintf(
+                this->send_msg->data + this->send_msg->len,
+                MAX_TCP_MSG_BUF_LEN - this->send_msg->len,
+                " INT - %d", msg->data.INT
+            );
+            break;
+        case SHORT_REAL:
+            this->send_msg->len += snprintf(
+                this->send_msg->data + this->send_msg->len,
+                MAX_TCP_MSG_BUF_LEN - this->send_msg->len,
+                " SHORT_REAL - %.2f", msg->data.SHORT_REAL
+            );
+            break;
+        case FLOAT:
+            this->send_msg->len += snprintf(
+                this->send_msg->data + this->send_msg->len,
+                MAX_TCP_MSG_BUF_LEN - this->send_msg->len,
+                " FLOAT - %f", msg->data.FLOAT
+            );
+            break;
+        case STRING:
+            this->send_msg->len += snprintf(
+                this->send_msg->data + this->send_msg->len,
+                MAX_TCP_MSG_BUF_LEN - this->send_msg->len,
+                " STRING - %s", msg->data.STRING
+            );
+            break;
+        default:
+            return UDP_UNKNOWN_DATA_TYPE;
+    }
+
+    return OK;
+}
+
+static err_t transmit_topic_to_clients(server_t *this) {
+    err_t err = OK;
+
+    if ((err = pack_topic_to_tcp_msg(this, &this->udp_msgs[this->udp_msgs_len - 1]))) {
+        return err;
+    }
+
+    for (size_t iter = 0; iter < this->clients->len; ++iter) {
+        for (size_t iter_j = 0; iter_j < this->clients->entities[iter].topics_len; ++iter_j) {
+            if (strcmp(this->udp_msgs[this->udp_msgs_len - 1].topic, this->clients->entities[iter].topics[iter_j]) == 0) {
+                if (this->clients->entities[iter].status == ACTIVE) {
+                    if ((err = send_tcp_msg(this->clients->entities[iter].fd, (void *)this->send_msg, sizeof *this->send_msg)) != OK) {
+                        debug_msg(err);
+                    }
+                } else if (this->clients->entities[iter].options[iter_j] == SF) {
+                    if ((err = add_topic_msg_for_client(this->clients, &this->udp_msgs[this->udp_msgs_len - 1], iter)) != OK) {
+                        return err;
+                    }
+                }
+
+                break;
+            }
+        }
+    }
+
+    return OK;
+}
+
+static err_t retransmit_topics_to_client(server_t *this, int client_fd) {
+    err_t err = OK;
+
+    for (size_t iter = 0; iter < this->clients->len; ++iter) {
+        if (this->clients->entities[iter].fd == client_fd) {
+            size_t remaining_msgs = this->clients->entities[iter].ready_msgs_len;
+            
+            for (; remaining_msgs > 0; remaining_msgs--) {
+                if ((err = pack_topic_to_tcp_msg(this, this->clients->entities[iter].ready_msgs[remaining_msgs - 1]))) {
+                    this->clients->entities[iter].ready_msgs_len = remaining_msgs;
+                    return err;
+                }
+
+                if ((err = send_tcp_msg(client_fd, (void *)this->send_msg, sizeof *this->send_msg)) != OK) {
+                    this->clients->entities[iter].ready_msgs_len = remaining_msgs;
+                    debug_msg(err);
+                    break;
+                }
+            }
+
+            this->clients->entities[iter].ready_msgs_len = remaining_msgs;
+            
+            break;
+        }
+    }
+
+    return CLIENTS_VEC_CLIENT_NOT_FOUND;
+}
+
 err_t process_ready_fds(server_t *this) {
     if (this == NULL) {
         return SERVER_INPUT_IS_NULL;
@@ -294,11 +434,13 @@ err_t process_ready_fds(server_t *this) {
 
                     iter--;
                 } else {
-                    udp_type_t udp_data;
-                    memset(&udp_data, 0, sizeof udp_data);
+                    if ((err = add_server_udp_msg(this)) != OK) {
+                        return err;
+                    }
 
-                    parse_udp_type_from(&udp_data, this->buf);
-                    print_udp_type(&udp_data);
+                    if ((err = transmit_topic_to_clients(this)) != OK) {
+                        return err;
+                    }
                 }
             } else if (this->poll_vec->pfds[iter].fd == this->tcp_socket) {
                 struct sockaddr_in new_client;
@@ -322,7 +464,9 @@ err_t process_ready_fds(server_t *this) {
                         } else {
                             printf("New client %s connected from %s:%hu.\n", this->recv_msg->data, inet_ntoa(new_client.sin_addr), ntohs(new_client.sin_port));
 
-                            // Here we will have to do the sf actions
+                            if ((err = retransmit_topics_to_client(this, new_client_fd)) != OK) {
+                                debug_msg(err);
+                            }
                         }
                     }
                 }
