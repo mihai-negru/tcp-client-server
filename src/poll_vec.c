@@ -59,6 +59,7 @@ err_t poll_vec_add_fd(poll_vec_t *vec, int fd, short fd_events) {
 
     vec->pfds[vec->nfds].fd = fd;
     vec->pfds[vec->nfds].events = fd_events;
+    vec->pfds[vec->nfds].revents = 0;
 
     (vec->nfds)++;
 
@@ -76,8 +77,8 @@ err_t poll_vec_remove_fd(poll_vec_t *vec, nfds_t fd_idx) {
 
     close(vec->pfds[fd_idx].fd);
 
-    if (fd_idx != vec->nfds - 1) {
-        memmove(vec + fd_idx, vec + fd_idx + 1, sizeof *vec->pfds * (vec->nfds - fd_idx - 1));
+    for (; fd_idx < vec->nfds - 1; ++fd_idx) {
+        vec->pfds[fd_idx] = vec->pfds[fd_idx + 1];
     }
 
     (vec->nfds)--;

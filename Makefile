@@ -23,10 +23,10 @@ all: $(EXEC_FILES)
 %.o: $(SRC)/%.c
 	@$(CC) $(CFLAGS) -c $<
 
-server: server.o server_utils.o utils.o poll_vec.o udp_type.o
+server: server.o server_utils.o utils.o poll_vec.o udp_type.o tcp_type.o client_vec.o
 	@$(CC) $^ -o $@
 
-subscriber: subscriber.o subscriber_utils.o utils.o poll_vec.o
+subscriber: subscriber.o subscriber_utils.o utils.o poll_vec.o tcp_type.o
 	@$(CC) $^ -o $@
 
 # %: %.o %_utils.o utils.o poll_vec.o

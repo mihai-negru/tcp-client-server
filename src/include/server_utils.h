@@ -4,10 +4,13 @@
 #include "./utils.h"
 #include "./poll_vec.h"
 #include "./udp_type.h"
+#include "./tcp_type.h"
+#include "./client_vec.h"
 
 #define MAX_SERVER_BUFLEN 8096
 #define MAX_LISTEN_SOCKET 10
 #define INIT_NFDS (nfds_t)10
+#define INIT_CLIENTS 10
 #define EXIT_CMD "exit\0"
 #define EXIT_CMD_LEN strlen(EXIT_CMD)
 
@@ -19,6 +22,9 @@ typedef struct server_s {
     poll_vec_t *poll_vec;
     char *buf;
     char *cmd;
+    tcp_msg_t *send_msg;
+    tcp_msg_t *recv_msg;
+    client_vec_t *clients;
 } server_t;
 
 err_t init_server(server_t **server, const uint16_t hport);

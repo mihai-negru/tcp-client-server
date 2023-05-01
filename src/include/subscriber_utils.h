@@ -3,10 +3,9 @@
 
 #include "./utils.h"
 #include "./poll_vec.h"
+#include "./tcp_type.h"
 
-#define MAX_CLIENT_BUFLEN 8096
 #define MAX_CLIENT_CMD_LEN 128
-#define MAX_ID_CLIENT_LEN 10
 
 #define SUBSCRIBE_CMD "subscribe\0"
 #define SUBSCRIBE_CMD_LEN strlen(SUBSCRIBE_CMD)
@@ -27,8 +26,9 @@ typedef struct client_s {
     int tcp_socket;
     struct sockaddr_in tcp_addr;
     poll_vec_t *poll_vec;
-    char *buf;
     char *cmd;
+    tcp_msg_t *send_msg;
+    tcp_msg_t *recv_msg;
 } client_t;
 
 err_t init_client(client_t **client, const char *id, const char *ip, const uint16_t hport);

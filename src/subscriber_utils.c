@@ -15,8 +15,14 @@ static int init_client_tcp_socket(client_t *client, const char *ip, const uint16
         return -1;
     }
 
-    memcpy(client->buf, client->id, strlen(client->id));
-    return send(client->tcp_socket, client->buf, strlen(client->id), 0);
+    client->send_msg->len = strlen(client->id) + 1;
+    memcpy(client->send_msg->data, client->id, client->send_msg->len);
+    
+    if (send_tcp_msg(client->tcp_socket, (void *)client->send_msg, sizeof *client->send_msg) != OK) {
+        return -1;
+    }
+
+    return 0;
 }
 
 static int init_client_poll_vec(client_t *client) {
@@ -33,6 +39,34 @@ static int init_client_poll_vec(client_t *client) {
         free_poll_vec(&client->poll_vec);
         return -1;
     }
+
+    return 0;
+}
+
+static int init_client_buffers(client_t *client) {
+    client->cmd = malloc(sizeof *client->cmd * MAX_CLIENT_CMD_LEN);
+    if (client->cmd == NULL) {
+        return -1;
+    }
+
+    client->send_msg = malloc(sizeof *client->send_msg);
+    if (client->send_msg == NULL) {
+        free(client->cmd);
+
+        return -1;
+    }
+
+    client->recv_msg = malloc(sizeof *client->recv_msg);
+    if (client->recv_msg == NULL) {
+        free(client->cmd);
+        free(client->send_msg);
+
+        return -1;
+    }
+    
+    memset(client->cmd, 0, MAX_CLIENT_CMD_LEN);
+    memset(client->send_msg, 0, sizeof *client->send_msg);
+    memset(client->recv_msg, 0, sizeof *client->recv_msg);
 
     return 0;
 }
@@ -65,32 +99,18 @@ err_t init_client(client_t **client, const char *id, const char *ip, const uint1
 
     memcpy((*client)->id, id, MAX_ID_CLIENT_LEN);
 
-    (*client)->buf = malloc(sizeof *(*client)->buf * MAX_CLIENT_BUFLEN);
-    if ((*client)->buf == NULL) {
-        free((*client)->id);
+    if (init_client_buffers(*client) < 0) {
         free(*client);
         *client = NULL;
 
         return CLIENT_FAILED_ALLOCATION;
     }
-
-    (*client)->cmd = malloc(sizeof *(*client)->cmd * MAX_CLIENT_CMD_LEN);
-    if ((*client)->cmd == NULL) {
-        free((*client)->id);
-        free((*client)->buf);
-        free(*client);
-        *client = NULL;
-
-        return CLIENT_FAILED_ALLOCATION;
-    }
-
-    memset((*client)->buf, 0, MAX_CLIENT_BUFLEN);
-    memset((*client)->cmd, 0, MAX_CLIENT_CMD_LEN);
 
     if (init_client_tcp_socket(*client, ip, hport) < 0) {
         free((*client)->id);
-        free((*client)->buf);
         free((*client)->cmd);
+        free((*client)->send_msg);
+        free((*client)->recv_msg);
         free(*client);
         *client = NULL;
 
@@ -101,8 +121,9 @@ err_t init_client(client_t **client, const char *id, const char *ip, const uint1
     if (init_client_poll_vec(*client) < 0) {
         close((*client)->tcp_socket);
         free((*client)->id);
-        free((*client)->buf);
         free((*client)->cmd);
+        free((*client)->send_msg);
+        free((*client)->recv_msg);
         free(*client);
         *client = NULL;
 
@@ -125,12 +146,16 @@ err_t free_client(client_t **client) {
         free((*client)->id);
     }
 
-    if ((*client)->buf != NULL) {
-        free((*client)->buf);
-    }
-
     if ((*client)->cmd != NULL) {
         free((*client)->cmd);
+    }
+
+    if ((*client)->send_msg != NULL) {
+        free((*client)->send_msg);
+    }
+
+    if ((*client)->recv_msg != NULL) {
+        free((*client)->recv_msg);
     }
 
     free(*client);
@@ -164,18 +189,18 @@ err_t process_ready_fds(client_t *this) {
         return POLL_VEC_INPUT_IS_NULL;
     }
 
-    // err_t err = OK;
+    err_t err = OK;
 
-    ssize_t tcp_bytes = 0;
     if ((this->poll_vec->pfds[1].revents & POLLIN) != 0) {
-        tcp_bytes = recv(this->tcp_socket, this->buf, MAX_CLIENT_BUFLEN, 0);
+        err = recv_tcp_msg(this->tcp_socket, (void *)this->recv_msg, sizeof *this->recv_msg);
 
-        if (tcp_bytes == 0) {
+        if (err == TCP_FAILED_SEND_RECV) {
             return OK_WITH_EXIT;
+        } else if (err != OK) {
+            return err;
         } else {
 
         }
-
     } else if ((this->poll_vec->pfds[1].revents & POLLOUT) != 0) {
         // DEBUG("[CLIENT] Can send a msg to server.");
     }

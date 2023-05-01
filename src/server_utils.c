@@ -67,6 +67,45 @@ static int init_server_poll_vec(server_t *server) {
     return 0;
 }
 
+static int init_server_buffers(server_t *server) {
+    server->buf = malloc(sizeof *server->buf * MAX_SERVER_BUFLEN);
+    if (server->buf == NULL) {
+        return -1;
+    }
+
+    server->cmd = malloc(sizeof *server->cmd * MAX_CMD_LEN);
+    if (server->cmd == NULL) {
+        free(server->buf);
+
+        return -1;
+    }
+
+    server->send_msg = malloc(sizeof *server->send_msg);
+    if (server->send_msg == NULL) {
+        free(server->buf);
+        free(server->cmd);
+
+        return -1;
+    }
+
+    server->recv_msg = malloc(sizeof *server->recv_msg);
+    if (server->recv_msg == NULL) {
+        free(server->buf);
+        free(server->cmd);
+        free(server->send_msg);
+
+        return -1;
+    }
+    
+
+    memset(server->buf, 0, MAX_SERVER_BUFLEN);
+    memset(server->cmd, 0, MAX_CMD_LEN);
+    memset(server->send_msg, 0, sizeof *server->send_msg);
+    memset(server->recv_msg, 0, sizeof *server->recv_msg);
+
+    return 0;
+}
+
 err_t init_server(server_t **server, const uint16_t hport) {
     if (*server != NULL) {
         return SERVER_INPUT_IS_NOT_NULL;
@@ -81,29 +120,18 @@ err_t init_server(server_t **server, const uint16_t hport) {
         return SERVER_FAILED_ALLOCATION;
     }
 
-    (*server)->buf = malloc(sizeof *(*server)->buf * MAX_SERVER_BUFLEN);
-    if ((*server)->buf == NULL) {
+    if (init_server_buffers(*server) < 0) {
         free(*server);
         *server = NULL;
 
         return SERVER_FAILED_ALLOCATION;
     }
-
-    (*server)->cmd = malloc(sizeof *(*server)->cmd * MAX_CMD_LEN);
-    if ((*server)->cmd == NULL) {
-        free((*server)->buf);
-        free(*server);
-        *server = NULL;
-
-        return SERVER_FAILED_ALLOCATION;
-    }
-
-    memset((*server)->buf, 0, MAX_SERVER_BUFLEN);
-    memset((*server)->cmd, 0, MAX_CMD_LEN);
     
     if (init_server_udp_socket(*server, hport) < 0) {
         free((*server)->buf);
         free((*server)->cmd);
+        free((*server)->send_msg);
+        free((*server)->recv_msg);
         free(*server);
         *server = NULL;
 
@@ -114,6 +142,8 @@ err_t init_server(server_t **server, const uint16_t hport) {
         close((*server)->udp_socket);
         free((*server)->buf);
         free((*server)->cmd);
+        free((*server)->send_msg);
+        free((*server)->recv_msg);
         free(*server);
         *server = NULL;
 
@@ -126,10 +156,27 @@ err_t init_server(server_t **server, const uint16_t hport) {
         close((*server)->tcp_socket);
         free((*server)->buf);
         free((*server)->cmd);
+        free((*server)->send_msg);
+        free((*server)->recv_msg);
         free(*server);
         *server = NULL;
 
         return SERVER_FAILED_POLL_VEC;
+    }
+
+    (*server)->clients = NULL;
+    if (create_clients_vec(&(*server)->clients, INIT_CLIENTS) != OK) {
+        close((*server)->udp_socket);
+        close((*server)->tcp_socket);
+        free((*server)->buf);
+        free((*server)->cmd);
+        free((*server)->send_msg);
+        free((*server)->recv_msg);
+        free_poll_vec(&(*server)->poll_vec);
+        free(*server);
+        *server = NULL;
+
+        return SERVER_FAILED_CLIENTS_VEC;
     }
     
     return OK;
@@ -150,6 +197,18 @@ err_t free_server(server_t **server) {
 
     if ((*server)->cmd != NULL) {
         free((*server)->cmd);
+    }
+
+    if ((*server)->send_msg != NULL) {
+        free((*server)->send_msg);
+    }
+
+    if ((*server)->recv_msg != NULL) {
+        free((*server)->recv_msg);
+    }
+
+    if ((*server)->clients != NULL) {
+        free_clients_vec(&(*server)->clients);
     }
 
     free(*server);
@@ -217,6 +276,8 @@ err_t process_ready_fds(server_t *this) {
                     if ((err = poll_vec_remove_fd(this->poll_vec, iter)) != OK) {
                         return err;
                     }
+
+                    iter--;
                 } else {
                     udp_type_t udp_data;
                     memset(&udp_data, 0, sizeof udp_data);
@@ -231,25 +292,37 @@ err_t process_ready_fds(server_t *this) {
                 int new_client_fd = accept(this->tcp_socket, (struct sockaddr *) &new_client, &(socklen_t){sizeof new_client});
 
                 if (new_client_fd <= 0) {
-                    return SERVER_FAILED_CONNECT_TCP;
+                    return SERVER_FAILED_ACCEPT_TCP;
                 } else {
                     if ((err = poll_vec_add_fd(this->poll_vec, new_client_fd, POLLIN | POLLOUT)) != OK) {
                         return err;
                     }
 
-                    ssize_t conn_bytes = recv(new_client_fd, this->buf, MAX_SERVER_BUFLEN, 0);
+                    if ((err = recv_tcp_msg(new_client_fd, (void *)this->recv_msg, sizeof *this->recv_msg)) != OK) {
+                        return SERVER_COULD_NOT_CONNECT_NEW_CLIENT;
+                    } else {
+                        if ((err = register_new_client(this->clients, this->recv_msg->data, new_client_fd)) != OK) {
+                            printf("Client %s already connected.\n", this->recv_msg->data);
+                            poll_vec_remove_fd(this->poll_vec, this->poll_vec->nfds - 1);
+                        } else {
+                            printf("New client %s connected from %s:%hu.\n", this->recv_msg->data, inet_ntoa(new_client.sin_addr), ntohs(new_client.sin_port));
 
-                    printf("New client %s connected from %s:%hu.\n", this->buf, inet_ntoa(new_client.sin_addr), ntohs(new_client.sin_port));
+                            // Here we will have to do the sf actions
+                        }
+                    }
                 }
             } else {
-                ssize_t tcp_bytes = recv(this->poll_vec->pfds[iter].fd, this->buf, MAX_SERVER_BUFLEN, 0);
-
-                if (tcp_bytes == 0) {
-                    poll_vec_remove_fd(this->poll_vec, iter);
-
-                    printf("Client %s disconnected.\n", this->buf);
+                if ((err = recv_tcp_msg(this->poll_vec->pfds[iter].fd, (void *)this->recv_msg, sizeof *this->recv_msg)) != OK) {
+                    size_t close_client_idx = 0;
+                    if ((err = close_active_client(this->clients, this->poll_vec->pfds[iter].fd, &close_client_idx)) != OK) {
+                        debug_msg(err);
+                    } else {
+                        poll_vec_remove_fd(this->poll_vec, iter);
+                        iter--;
+                        printf("Client %s disconnected.\n", get_client_id(this->clients, close_client_idx));
+                    }
                 } else {
-
+                    // Here we handle the subscribe and unsubscribe commands
                 }
             }
         }
