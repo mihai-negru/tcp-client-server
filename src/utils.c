@@ -47,6 +47,9 @@ void debug_msg(const err_t error) {
         case SERVER_UNKNOWN_COMMAND:
             fprintf(stderr, "[DEBUG] Could not match the client command.");
             break;
+        case SERVER_COULD_NOT_ADD_NEW_UDP:
+            fprintf(stderr, "[DEBUG] Could not add a recv udp package to the server queue.");
+            break;
         case POLL_VEC_INPUT_IS_NOT_NULL:
             fprintf(stderr, "[DEBUG] Input poll vecor must be NULL to allocate.");
             break;
@@ -136,6 +139,9 @@ void debug_msg(const err_t error) {
             break;
         case CLIENTS_VEC_COUND_NOT_FIND_TOPIC:
             fprintf(stderr, "[DEBUG] Cound not find the topic in order to remove.");
+            break;
+        case CLIENTS_VEC_INDEX_OUT_OF_BOUND:
+            fprintf(stderr, "[DEBUG] Input client index is greater than the clients vector length.");
             break;
         default:
             fprintf(stderr, "[DEBUG] Unknown command.");
