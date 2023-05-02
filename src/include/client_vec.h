@@ -43,7 +43,7 @@ err_t register_new_client(client_vec_t *clients, char *client_id, int client_fd)
 err_t close_active_client(client_vec_t *clients, int client_fd, size_t *client_idx);
 char* get_client_id(client_vec_t *clients, size_t client_idx);
 
-err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd, char *client_topic, uint8_t client_sf);
+err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd, char *client_topic, client_options_t client_sf);
 err_t unsubscribe_client_from_topic(client_vec_t *clients, int client_fd, char *client_topic);
 
 err_t add_topic_msg_for_client(client_vec_t *clients, udp_type_t *udp_msg, size_t client_idx);

@@ -153,7 +153,7 @@ char* get_client_id(client_vec_t *clients, size_t client_idx) {
     return clients->entities[client_idx].id;
 }
 
-err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd, char *client_topic, uint8_t client_sf) {
+err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd, char *client_topic, client_options_t client_sf) {
     if (clients == NULL) {
         return CLIENTS_VEC_INPUT_IS_NULL;
     }

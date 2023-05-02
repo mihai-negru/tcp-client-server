@@ -282,7 +282,7 @@ static err_t process_server_tcp_msg(server_t *this, int client_fd) {
     char *topic = this->recv_msg->data + strlen(cmd) + 1;
 
     if (strcmp(cmd, "subscribe") == 0) {
-        return subscribe_client_to_topic(this->clients, client_fd, topic, *(uint8_t *)(this->recv_msg->data + this->recv_msg->len - 1));
+        return subscribe_client_to_topic(this->clients, client_fd, topic, *(uint8_t *)(this->recv_msg->data + this->recv_msg->len - 1) == 0 ? NO_SF : SF);
     } else if (strcmp(cmd, "unsubscribe") == 0) {
         return unsubscribe_client_from_topic(this->clients, client_fd, topic);
     } else {
