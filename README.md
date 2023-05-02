@@ -140,10 +140,10 @@ The input command name is **case sensitive** and has to follow the current patte
     subscribe to_topic -1321 # <=> subscribe to_topic 0
     subscribe to_topic 43 # <=> subscribe to_topic 1
     subscribe 43 # in this case the topic name will be "43" <=> subscribe 43 0
-    
+
     subscribe to a fragmented topic 0 # subscribe to 0
     subscribe to a fragmented topic 1 # subscribe to 0
-    
+
     subscribe # Actual error because the topic name cannot be inferred
     [DEBUG] Input command has not a valid format.
 ```
