@@ -9,6 +9,11 @@ CFLAGS 		:= 	-g -Wall -Wextra -Wpedantic 					\
 RM			:= 	rm
 RFLAGS		:= 	-rf
 
+ZIP			:=	zip
+ZIP_NAME	:=	323CD_Negru_Mihai_Tema2.zip 
+ZIP_FLAGS	:= -r
+ZIP_FILES	:= 	src/ Makefile README.md
+
 SRC			:= 	src
 SRC_FILES	:= $(wildcard $(SRC)/*.c)
 
@@ -29,8 +34,8 @@ server: server.o server_utils.o utils.o poll_vec.o udp_type.o tcp_type.o client_
 subscriber: subscriber.o subscriber_utils.o utils.o poll_vec.o tcp_type.o
 	@$(CC) $^ -o $@
 
-# %: %.o %_utils.o utils.o poll_vec.o
-# 	@$(CC) $^ -o $@
+zip_project: $(ZIP_FILES)
+	@$(ZIP) $(ZIP_FLAGS) $(ZIP_NAME) $(ZIP_FILES)
 
 clean:
 	@$(RM) $(RFLAGS) $(EXEC_FILES) $(O_FILES)

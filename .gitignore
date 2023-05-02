@@ -4,3 +4,4 @@ subscriber
 pcom_hw2_udp_client/utils/
 .vscode
 *.txt
+*.zip
