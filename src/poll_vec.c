@@ -1,12 +1,19 @@
 #include "./include/poll_vec.h"
 
+/**
+ * @brief Creates a poll vector and links it to the
+ * input poll vector pointer.
+ * 
+ * @param vec pointer to a NULL poll vector.
+ * @param init_nfds init capacity for the poll vector.
+ * @return err_t OK if poll vector was allocated successfully or error otherwise.
+ */
 err_t create_poll_vec(poll_vec_t **vec, nfds_t init_nfds) {
     if ((vec == NULL) || (*vec != NULL)) {
         return POLL_VEC_INPUT_IS_NOT_NULL;
     }
 
     *vec = malloc(sizeof **vec);
-
     if (*vec == NULL) {
         return POLL_VEC_FAILED_ALLOCATION;
     }
@@ -22,6 +29,12 @@ err_t create_poll_vec(poll_vec_t **vec, nfds_t init_nfds) {
     return OK;
 }
 
+/**
+ * @brief Frees a poll vector and assigns it to NULL pointer.
+ * 
+ * @param vec pointer to a poll vector.
+ * @return err_t OK if poll vector was freed successfully or error otherwise.
+ */
 err_t free_poll_vec(poll_vec_t **vec) {
     if ((vec == NULL) || (*vec == NULL)) {
         return POLL_VEC_INPUT_IS_NULL;
@@ -41,11 +54,21 @@ err_t free_poll_vec(poll_vec_t **vec) {
     return OK;
 }
 
+/**
+ * @brief Adds a new valid file descriptor to the poll vector
+ * for IO multiplexing.
+ * 
+ * @param vec poll vector structure.
+ * @param fd new valid file descriptor.
+ * @param fd_events file descriptor events.
+ * @return err_t OK if file descriptor was added successfully or error otherwise.
+ */
 err_t poll_vec_add_fd(poll_vec_t *vec, int fd, short fd_events) {
     if (vec == NULL) {
         return POLL_VEC_INPUT_IS_NULL;
     }
 
+    /* Adds more memory for new fds */
     if (vec->nfds == vec->capacity) {
         struct pollfd *pfds_real = realloc(vec->pfds, sizeof *vec->pfds * vec->capacity * REALLOC_FACTOR);
 
@@ -66,6 +89,14 @@ err_t poll_vec_add_fd(poll_vec_t *vec, int fd, short fd_events) {
     return OK;
 }
 
+/**
+ * @brief Removes a file descriptor from the poll vector at a specified
+ * index, the index should be valid or function will return with error.
+ * 
+ * @param vec poll vector structure.
+ * @param fd_idx index of the file descriptor.
+ * @return err_t OK if file descriptor was removed or error otherwise.
+ */
 err_t poll_vec_remove_fd(poll_vec_t *vec, nfds_t fd_idx) {
     if (vec == NULL) {
         return POLL_VEC_INPUT_IS_NULL;
@@ -75,6 +106,11 @@ err_t poll_vec_remove_fd(poll_vec_t *vec, nfds_t fd_idx) {
         return POLL_VEC_INPUT_FD_IDX_OUT_OF_BOUND;
     }
 
+    /*
+     * Close the specified socket fd and
+     * which will generate on the other
+     * end a termination for the thread
+     */
     close(vec->pfds[fd_idx].fd);
 
     for (; fd_idx < vec->nfds - 1; ++fd_idx) {

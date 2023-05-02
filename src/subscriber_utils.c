@@ -1,5 +1,13 @@
 #include "./include/subscriber_utils.h"
 
+/**
+ * @brief Inits the TCP connection to the server and send the client ID.
+ * 
+ * @param client client structure.
+ * @param ip server ip number in dotted standart.
+ * @param hport server port number.
+ * @return int 0 if tcp init went successfully or -1 otherwise.
+ */
 static int init_client_tcp_socket(client_t *client, const char *ip, const uint16_t hport) {
     if ((client->tcp_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
         return client->tcp_socket;
@@ -11,14 +19,15 @@ static int init_client_tcp_socket(client_t *client, const char *ip, const uint16
     client->tcp_addr.sin_addr.s_addr = inet_addr(ip);
     client->tcp_addr.sin_port = htons(hport);
 
+    /* Connect to the server side */
     if (connect(client->tcp_socket, (const struct sockaddr *) &client->tcp_addr, sizeof client->tcp_addr) < 0) {
         return -1;
     }
 
     client->send_msg->len = strlen(client->id) + 1;
     strcpy(client->send_msg->data, client->id);
-    //memcpy(client->send_msg->data, client->id, client->send_msg->len);
     
+    /* Server accepted the connection send the ID */
     if (send_tcp_msg(client->tcp_socket, (void *)client->send_msg, sizeof *client->send_msg) != OK) {
         return -1;
     }
@@ -26,16 +35,24 @@ static int init_client_tcp_socket(client_t *client, const char *ip, const uint16
     return 0;
 }
 
+/**
+ * @brief Inits the poll vector for the client and adds the stdin and the TCP server socket.
+ * 
+ * @param client client structure.
+ * @return int 0 if poll vector was initialized successfully or -1 otherwise.
+ */
 static int init_client_poll_vec(client_t *client) {
     if (create_poll_vec(&client->poll_vec, 2) != OK) {
         return -1;
     }
 
+    /* Add stdin file descriptor */
     if (poll_vec_add_fd(client->poll_vec, STDIN_FILENO, POLLIN) != OK) {
         free_poll_vec(&client->poll_vec);
         return -1;
     }
 
+    /* Add the TCP server socket file descriptor */
     if (poll_vec_add_fd(client->poll_vec, client->tcp_socket, POLLIN | POLLOUT) != OK) {
         free_poll_vec(&client->poll_vec);
         return -1;
@@ -44,6 +61,14 @@ static int init_client_poll_vec(client_t *client) {
     return 0;
 }
 
+/**
+ * @brief Inits the required buffers, structures in order to maintain the
+ * connection with the server as protocol packages structures to send and
+ * receive messages over the TCP connection.
+ * 
+ * @param client client structure.
+ * @return int 0 if the allocation went successfully or -1 otherwise.
+ */
 static int init_client_buffers(client_t *client) {
     client->cmd = malloc(sizeof *client->cmd * MAX_CLIENT_CMD_LEN);
     if (client->cmd == NULL) {
@@ -65,6 +90,7 @@ static int init_client_buffers(client_t *client) {
         return -1;
     }
     
+    /* Clear junk bytes from the structures */
     memset(client->cmd, 0, MAX_CLIENT_CMD_LEN);
     memset(client->send_msg, 0, sizeof *client->send_msg);
     memset(client->recv_msg, 0, sizeof *client->recv_msg);
@@ -72,6 +98,21 @@ static int init_client_buffers(client_t *client) {
     return 0;
 }
 
+/**
+ * @brief Allocates a client type structure and connects to the server.
+ * Upon accepting the connection the client will send a TCP message with
+ * its ID, after getting the ID the server will decide if the client has
+ * the permission to send requests, if nothing is sent back from the server
+ * the client is available to send request, otherwise the client will shut
+ * itself. 
+ * 
+ * @param client pointer to client structure in otder to allocate, MUST be NULL. 
+ * @param id string ID name assigned to a client.
+ * @param ip server ip representation with dotted standart.
+ * @param hport server port number must be a valid port.
+ * @return err_t OK if the client was allocated and has permissions to send requests
+ * to the server or error otherwise.
+ */
 err_t init_client(client_t **client, const char *id, const char *ip, const uint16_t hport) {
     if (*client != NULL) {
         return CLIENT_INPUT_IS_NOT_NULL;
@@ -99,7 +140,6 @@ err_t init_client(client_t **client, const char *id, const char *ip, const uint1
     }
 
     strcpy((*client)->id, id);
-    //memcpy((*client)->id, id, MAX_ID_CLIENT_LEN);
 
     if (init_client_buffers(*client) < 0) {
         free(*client);
@@ -135,6 +175,14 @@ err_t init_client(client_t **client, const char *id, const char *ip, const uint1
     return OK;
 }
 
+/**
+ * @brief Frees the memory allocated for a client structure and closes the
+ * connection with the server.
+ * 
+ * @param client pointer to client structure MUST not be NULL.
+ * @return err_t OK if client was freed successfully and connection was closed
+ * or error otherwise.
+ */
 err_t free_client(client_t **client) {
     if ((client == NULL) || (*client == NULL)) {
         return CLIENT_INPUT_IS_NULL;
@@ -166,6 +214,14 @@ err_t free_client(client_t **client) {
     return OK;
 }
 
+/**
+ * @brief Poll the available fds, the poll timeout is set to -1.
+ * If the function returns with POLL_FAILED_TIMED_OUT the connection
+ * is wrong or the fds is unavilable.
+ * 
+ * @param this client structure.
+ * @return err_t OK if atleast one fd is available for specified events.
+ */
 err_t wait_for_ready_fds(client_t *this) {
     if (this == NULL) {
         return CLIENT_INPUT_IS_NULL;
@@ -175,6 +231,7 @@ err_t wait_for_ready_fds(client_t *this) {
         return POLL_VEC_INPUT_IS_NULL;
     }
 
+    /* Should not timeout */
     if (poll(this->poll_vec->pfds, this->poll_vec->nfds, -1) <= 0) {
         return POLL_FAILED_TIMED_OUT; 
     }
@@ -182,6 +239,18 @@ err_t wait_for_ready_fds(client_t *this) {
     return OK;
 }
 
+/**
+ * @brief Receives a message from the server and processes it.
+ * The stdin fd is NOT processed here, just the server socket.
+ * The client prints the server message without any additional checks,
+ * because all the checks are made on the server side (supposing we have
+ * a sequare and error prone connection).
+ * 
+ * @param this client structure.
+ * @return err_t OK if message was received successfully,
+ * OK_WITH_EXIT if server closed the connection with the client or
+ * error otherwise.
+ */
 err_t process_ready_fds(client_t *this) {
     if (this == NULL) {
         return CLIENT_INPUT_IS_NULL;
@@ -194,13 +263,19 @@ err_t process_ready_fds(client_t *this) {
     err_t err = OK;
 
     if ((this->poll_vec->pfds[1].revents & POLLIN) != 0) {
+
+        /* Receive an encapsulated TCP protocol message from the server side */
         err = recv_tcp_msg(this->tcp_socket, (void *)this->recv_msg, sizeof *this->recv_msg);
 
         if (err == TCP_FAILED_SEND_RECV) {
+            /* Server closed the connection so exit the main thread */
+
             return OK_WITH_EXIT;
         } else if (err != OK) {
             return err;
         } else {
+            /* Print the data received from the server which is a topic data */
+
             printf("%s\n", this->recv_msg->data);
         }
     }
@@ -208,24 +283,48 @@ err_t process_ready_fds(client_t *this) {
     return OK;
 }
 
+/**
+ * @brief Processes a subscribe message from the stdin.
+ * The input must be a valid one, however client runs a series
+ * of checks in order to send a valid request to the server, so
+ * mismatches from the input are converted to the most significat
+ * valid input.
+ * 
+ * @param this client structure.
+ * @return err_t OK if the message was processed and sent successfully to the server
+ * or error otherwise.
+ */
 err_t process_subscribe_cmd(client_t *this) {
     if (this == NULL) {
         return CLIENT_INPUT_IS_NULL;
     }
 
     char *save_ptr = NULL;
-    char *cmd = __strtok_r(this->cmd, " \n", &save_ptr);
-    char *topic = __strtok_r(NULL, " \n", &save_ptr);
-    uint8_t sf = atoi(__strtok_r(NULL, " \n", &save_ptr));
+
+    /* Cannot be NULL checked on get_cmd_line function */
+    char *cmd = __strtok_r(this->cmd, WORD_SEPARATOR, &save_ptr);
+
+    /* If NULL exit the subscribe cmd */
+    char *topic = __strtok_r(NULL, WORD_SEPARATOR, &save_ptr);
+
+    if (topic == NULL) {
+        return CLIENT_INPUT_IS_NULL;
+    }
+
+    /* Match the invalid input with a valid sf number */
+    char *sf_str = __strtok_r(NULL, WORD_SEPARATOR, &save_ptr);
+    uint8_t sf = sf_str == NULL ? 0 : (atoi(sf_str) <= 0 ? 0 : 1);
+
+    /* Copy the input data into the send_msg package TCP protocol */
 
     size_t send_offset = 0;
 
     this->send_msg->len = strlen(cmd) + 1;
-    memcpy(this->send_msg->data, cmd, this->send_msg->len);
+    strcpy(this->send_msg->data, cmd);
 
     send_offset += this->send_msg->len;
     this->send_msg->len = strlen(topic) + 1;
-    memcpy(this->send_msg->data + send_offset, topic, this->send_msg->len);
+    strcpy(this->send_msg->data + send_offset, topic);
 
     send_offset += this->send_msg->len;
     this->send_msg->len = sizeof sf;
@@ -233,32 +332,67 @@ err_t process_subscribe_cmd(client_t *this) {
 
     this->send_msg->len += send_offset;
 
+    /* Send the request to the server side */
     return send_tcp_msg(this->tcp_socket, (void *)this->send_msg, sizeof *this->send_msg);
 }
 
+/**
+ * @brief Processes an unsubscribe message from the stdin.
+ * The input must be a valid one, however client runs a series
+ * of checks in order to send a valid request to the server, so
+ * mismatches from the input are converted to the most significat
+ * valid input.
+ * 
+ * @param this client structure.
+ * @return err_t OK if the message was processed and sent successfully to the server
+ * or error otherwise.
+ */
 err_t process_unsubscribe_cmd(client_t *this) {
     if (this == NULL) {
         return CLIENT_INPUT_IS_NULL;
     }
 
     char *save_ptr = NULL;
-    char *cmd = __strtok_r(this->cmd, " \n", &save_ptr);
-    char *topic = __strtok_r(NULL, " \n", &save_ptr);
+
+    /* Cannot be NULL checked on get_cmd_line function */
+    char *cmd = __strtok_r(this->cmd, WORD_SEPARATOR, &save_ptr);
+
+    /* If NULL exit the unsubscribe cmd */
+    char *topic = __strtok_r(NULL, WORD_SEPARATOR, &save_ptr);
+
+    if (topic == NULL) {
+        return CLIENT_INPUT_IS_NULL;
+    }
+
+    /* Copy the input data into the send_msg package TCP protocol */
 
     size_t send_offset = 0;
 
     this->send_msg->len = strlen(cmd) + 1;
-    memcpy(this->send_msg->data, cmd, this->send_msg->len);
+    strcpy(this->send_msg->data, cmd);
 
     send_offset += this->send_msg->len;
     this->send_msg->len = strlen(topic) + 1;
-    memcpy(this->send_msg->data + send_offset, topic, this->send_msg->len);
+    strcpy(this->send_msg->data + send_offset, topic);
 
     this->send_msg->len += send_offset;
 
+    /* Send the request to the server side */
     return send_tcp_msg(this->tcp_socket, (void *)this->send_msg, sizeof *this->send_msg);
 }
 
+/**
+ * @brief A POLLIN for the stdin was send out so process the command.
+ * The command should contain a valid command descriptor, if the command
+ * name is not valid a `NONE` command will be sent to process, in other words
+ * the command will be NOT processed by the subscriber.
+ *
+ * This function checks just for command descriptor not for valid input,
+ * the input checks are made in prcoess_* functions.s
+ * 
+ * @param this client structure.
+ * @return cmd_line_t valid command descriptor.
+ */
 cmd_line_t get_cmd_line(client_t *this) {
     if (this == NULL) {
         return NONE;

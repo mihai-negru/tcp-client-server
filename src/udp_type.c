@@ -1,5 +1,11 @@
 #include "./include/udp_type.h"
 
+/**
+ * @brief Parses a int udp message type.
+ * 
+ * @param udp_type_var pointer to memory location to parse the message.
+ * @param buf pointer to buffer containing the message bytes. 
+ */
 static void parse_udp_int_type(udp_type_t *udp_type_var, char *buf) {
     uint8_t sign = *(uint8_t *)buf;
 
@@ -10,10 +16,22 @@ static void parse_udp_int_type(udp_type_t *udp_type_var, char *buf) {
     }
 }
 
+/**
+ * @brief Parses a short real udp message type.
+ * 
+ * @param udp_type_var pointer to memory location to parse the message.
+ * @param buf pointer to buffer containing the message bytes.
+ */
 static void parse_udp_short_real_type(udp_type_t *udp_type_var, char *buf) {
     udp_type_var->data.SHORT_REAL = (1.0 * ntohs(*(uint16_t *)buf)) / 100;
 }
 
+/**
+ * @brief Parses a float udp message type.
+ * 
+ * @param udp_type_var pointer to memory location to parse the message.
+ * @param buf pointer to buffer containing the message bytes. 
+ */
 static void parse_udp_float_type(udp_type_t *udp_type_var, char *buf) {
     uint8_t sign = *(uint8_t *)buf;
 
@@ -24,11 +42,24 @@ static void parse_udp_float_type(udp_type_t *udp_type_var, char *buf) {
     }
 }
 
+/**
+ * @brief Parses a string udp message type.
+ * 
+ * @param udp_type_var pointer to memory location to parse the message.
+ * @param buf pointer to buffer containing the message bytes.
+ */
 static void parse_udp_string_type(udp_type_t *udp_type_var, char *buf) {
     memset(udp_type_var->data.STRING, '\0', MAX_STRING_LEN);
     memcpy(udp_type_var->data.STRING, buf, MAX_STRING_LEN);
 }
 
+/**
+ * @brief Parses a buffer into a udp message type.
+ * 
+ * @param udp_type_var pointer to memory location to parse the message.
+ * @param buf pointer to buffer containing the message bytes.
+ * @return err_t OK if parser executed successfully or UDP_* errors otherwise.
+ */
 err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf) {
     if (udp_type_var == NULL) {
         return UDP_INPUT_VAR_IS_NULL;
@@ -64,6 +95,13 @@ err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf) {
     return OK;
 }
 
+/**
+ * @brief Prints a parsed udp message type on stderr
+ * for debugging purposes.
+ * 
+ * @param udp_type_var pointer to udp message type.
+ * @return err_t OK if printing went successfully.
+ */
 err_t print_udp_type(udp_type_t *udp_type_var) {
     if (udp_type_var == NULL) {
         return UDP_INPUT_VAR_IS_NULL;
