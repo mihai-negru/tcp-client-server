@@ -1,3 +1,27 @@
+/**
+ * @file tcp_type.c
+ * @author Mihai Negru (determinant289@gmail.com)
+ * @version 1.0.0
+ * @date 2023-05-02
+ * 
+ * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
+ * This file is part of tcp-client-server.
+ *
+ * tcp-client-server is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * tcp-client-server is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 #include "./include/tcp_type.h"
 
 /**
