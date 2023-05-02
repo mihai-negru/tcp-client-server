@@ -81,17 +81,21 @@ static void parse_udp_string_type(udp_type_t *udp_type_var, char *buf) {
  * @brief Parses a buffer into a udp message type.
  *
  * @param udp_type_var pointer to memory location to parse the message.
+ * @param addr pointer to memory location of the udp address information.
  * @param buf pointer to buffer containing the message bytes.
  * @return err_t OK if parser executed successfully or UDP_* errors otherwise.
  */
-err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf) {
+err_t parse_udp_type_from(udp_type_t *udp_type_var, struct sockaddr_in *addr, char *buf) {
     if (udp_type_var == NULL) {
         return UDP_INPUT_VAR_IS_NULL;
     }
 
-    if (buf == NULL) {
+    if ((buf == NULL) || (addr == NULL)) {
         return UDP_INPUT_BUF_IS_NULL;
     }
+
+    memset(&udp_type_var->addr, 0, sizeof udp_type_var->addr);
+    memcpy(&udp_type_var->addr, addr, sizeof udp_type_var);
 
     memset(udp_type_var->topic, '\0', MAX_TOPIC_LEN);
     memcpy(udp_type_var->topic, buf, MAX_TOPIC_LEN);

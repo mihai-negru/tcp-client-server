@@ -183,6 +183,7 @@ If the **udp socket** or **listener socket** closes this will cause the server t
 
 
 The format of a message from a UDP Client is defined as a:
+    * *udp client address* - containing the udp sender ip address and port number
     * *topic_name* - string of max 50 characters
     * *topic_type* - 1 byte
     * *topic_data* - dynamic size according to the type

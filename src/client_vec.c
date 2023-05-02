@@ -237,7 +237,7 @@ const char* get_client_id(client_vec_t *clients, size_t client_idx) {
 /**
  * @brief Adds a new topic and a new option for the selected topic
  * for the specified client, the client is found over its valid socket
- * file descriptor.
+ * file descriptor. If the topic already exists the option will be updated
  *
  * @param clients clients vector structure.
  * @param client_fd valid socket file descriptor assigned for the client.
@@ -257,6 +257,15 @@ err_t subscribe_client_to_topic(client_vec_t *clients, int client_fd,
 
     for (size_t iter = 0; iter < clients->len; ++iter) {
         if (clients->entities[iter].fd == client_fd) {
+
+            /* Check if the topic already exists, if yes update the options */
+            for (size_t iter_j = 0; iter_j < clients->entities[iter].topics_len; ++iter_j) {
+                if (strcmp(clients->entities[iter].topics[iter_j], client_topic) == 0) {
+                    clients->entities[iter].options[iter_j] = client_sf;
+
+                    return OK;
+                }
+            }
 
             /* Adds more memory for new topics */
             if (clients->entities[iter].topics_len == clients->entities[iter].topic_capacity) {

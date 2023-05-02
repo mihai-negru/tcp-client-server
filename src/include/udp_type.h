@@ -61,6 +61,7 @@ typedef union udp_data_s {
  *
  */
 typedef struct udp_type_s {
+    struct sockaddr_in  addr;
     char                topic[MAX_TOPIC_LEN];
     udp_data_type_t     type;
     udp_data_t          data;
@@ -70,10 +71,11 @@ typedef struct udp_type_s {
  * @brief Parses a buffer into a udp message type.
  *
  * @param udp_type_var pointer to memory location to parse the message.
+ * @param addr pointer to memory location of the udp address information.
  * @param buf pointer to buffer containing the message bytes.
  * @return err_t OK if parser executed successfully or UDP_* errors otherwise.
  */
-err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf);
+err_t parse_udp_type_from(udp_type_t *udp_type_var, struct sockaddr_in *addr, char *buf);
 
 /**
  * @brief Prints a parsed udp message type on stderr

@@ -353,7 +353,14 @@ err_t wait_for_ready_fds(server_t *this) {
  * error otherwise.
  */
 static err_t pack_topic_to_tcp_msg(server_t *this, udp_type_t *msg) {
-    this->send_msg->len = snprintf(this->send_msg->data, MAX_TCP_MSG_BUF_LEN, "%s -", msg->topic);
+    this->send_msg->len = snprintf(
+        this->send_msg->data,
+        MAX_TCP_MSG_BUF_LEN,
+        "%s:%hu - %s -",
+        inet_ntoa(msg->addr.sin_addr),
+        ntohs(msg->addr.sin_port),
+        msg->topic
+    );
 
     switch (msg->type) {
         case INT:
@@ -460,7 +467,11 @@ static err_t add_server_udp_msg(server_t *this) {
      * and parse the informations into it
      */
     memset(&this->udp_msgs[this->udp_msgs_len], 0, sizeof *this->udp_msgs);
-    if ((err = parse_udp_type_from(&this->udp_msgs[this->udp_msgs_len], this->buf)) != OK) {
+    if ((err = parse_udp_type_from(
+        &this->udp_msgs[this->udp_msgs_len],
+        &this->udp_addr_client,
+        this->buf)) != OK
+    ) {
         return err;
     }
 
@@ -615,7 +626,14 @@ err_t process_ready_fds(server_t *this) {
             if (this->poll_vec->pfds[iter].fd == this->udp_socket) {
                 /* Process an UDP message */
 
-                ssize_t udp_bytes = recv(this->udp_socket, this->buf, MAX_SERVER_BUFLEN, 0);
+                ssize_t udp_bytes = recvfrom(
+                    this->udp_socket,
+                    this->buf,
+                    MAX_SERVER_BUFLEN,
+                    0,
+                    (struct sockaddr *) &this->udp_addr_client,
+                    &(socklen_t){sizeof this->udp_addr_client}
+                );
 
                 if (udp_bytes == 0) {
                     if ((err = poll_vec_remove_fd(this->poll_vec, iter)) != OK) {

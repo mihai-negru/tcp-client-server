@@ -46,6 +46,7 @@ typedef struct server_s {
     int                     tcp_socket;         /* Listener tcp socket for subscribers */
     struct sockaddr_in      udp_addr;
     struct sockaddr_in      tcp_addr;
+    struct sockaddr_in      udp_addr_client;
     poll_vec_t              *poll_vec;          /* Poll vector with all active fds */
     char                    *buf;               /* Buffer to process udp messages */
     char                    *cmd;               /* Buffer to process user input commands */
