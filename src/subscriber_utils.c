@@ -332,7 +332,7 @@ err_t process_subscribe_cmd(client_t *this) {
     char *topic = __strtok_r(NULL, WORD_SEPARATOR, &save_ptr);
 
     if (topic == NULL) {
-        return CLIENT_INPUT_IS_NULL;
+        return INPUT_WRONG_FORMAT;
     }
 
     /* Match the invalid input with a valid sf number */
@@ -385,7 +385,7 @@ err_t process_unsubscribe_cmd(client_t *this) {
     char *topic = __strtok_r(NULL, WORD_SEPARATOR, &save_ptr);
 
     if (topic == NULL) {
-        return CLIENT_INPUT_IS_NULL;
+        return INPUT_WRONG_FORMAT;
     }
 
     /* Copy the input data into the send_msg package TCP protocol */

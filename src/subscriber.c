@@ -77,10 +77,9 @@ int main(int argc, char **argv) {
 
                 if ((err = process_subscribe_cmd(client)) != OK) {
                     debug_msg(err);
-                    break;
+                } else {
+                    printf("Subscribed to topic.\n");
                 }
-
-                printf("Subscribed to topic.\n");
             } else if (cmd == UNSUBSCRIBE) {
                 /*
                  * Unsubscribe client to a new topic.
@@ -89,10 +88,9 @@ int main(int argc, char **argv) {
 
                 if ((err = process_unsubscribe_cmd(client)) != OK) {
                     debug_msg(err);
-                    break;
+                } else {
+                    printf("Unsubscribed from topic.\n");
                 }
-
-                printf("Unsubscribed from topic.\n");
             } else if (cmd == NONE) {
 
                 /* The stdin was not POLLIN so process the rest of the fds */

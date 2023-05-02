@@ -132,7 +132,9 @@ typedef enum err_s {
     CLIENTS_VEC_CLIENT_NOT_FOUND                = -43,
     CLIENTS_VEC_COUND_NOT_ADD_A_TOPIC           = -44,
     CLIENTS_VEC_COUND_NOT_FIND_TOPIC            = -45,
-    CLIENTS_VEC_INDEX_OUT_OF_BOUND              = -46
+    CLIENTS_VEC_INDEX_OUT_OF_BOUND              = -46,
+
+    INPUT_WRONG_FORMAT                          = -47
 } err_t;
 
 /**

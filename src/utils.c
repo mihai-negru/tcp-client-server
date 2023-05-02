@@ -173,6 +173,9 @@ void debug_msg(const err_t error) {
         case CLIENTS_VEC_INDEX_OUT_OF_BOUND:
             fprintf(stderr, "[DEBUG] Input client index is greater than the clients vector length.");
             break;
+        case INPUT_WRONG_FORMAT:
+            fprintf(stderr, "[DEBUG] Input command has not a valid format.");
+            break;
         default:
             fprintf(stderr, "[DEBUG] Unknown command.");
     }
