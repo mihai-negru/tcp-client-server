@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,14 +19,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #include "./include/subscriber_utils.h"
 
 /**
  * @brief Inits the TCP connection to the server and send the client ID.
- * 
+ *
  * @param client client structure.
  * @param ip server ip number in dotted standart.
  * @param hport server port number.
@@ -50,7 +50,7 @@ static int init_client_tcp_socket(client_t *client, const char *ip, const uint16
 
     client->send_msg->len = strlen(client->id) + 1;
     strcpy(client->send_msg->data, client->id);
-    
+
     /* Server accepted the connection send the ID */
     if (send_tcp_msg(client->tcp_socket, (void *)client->send_msg, sizeof *client->send_msg) != OK) {
         return -1;
@@ -61,7 +61,7 @@ static int init_client_tcp_socket(client_t *client, const char *ip, const uint16
 
 /**
  * @brief Inits the poll vector for the client and adds the stdin and the TCP server socket.
- * 
+ *
  * @param client client structure.
  * @return int 0 if poll vector was initialized successfully or -1 otherwise.
  */
@@ -89,7 +89,7 @@ static int init_client_poll_vec(client_t *client) {
  * @brief Inits the required buffers, structures in order to maintain the
  * connection with the server as protocol packages structures to send and
  * receive messages over the TCP connection.
- * 
+ *
  * @param client client structure.
  * @return int 0 if the allocation went successfully or -1 otherwise.
  */
@@ -113,7 +113,7 @@ static int init_client_buffers(client_t *client) {
 
         return -1;
     }
-    
+
     /* Clear junk bytes from the structures */
     memset(client->cmd, 0, MAX_CLIENT_CMD_LEN);
     memset(client->send_msg, 0, sizeof *client->send_msg);
@@ -128,9 +128,9 @@ static int init_client_buffers(client_t *client) {
  * its ID, after getting the ID the server will decide if the client has
  * the permission to send requests, if nothing is sent back from the server
  * the client is available to send request, otherwise the client will shut
- * itself. 
- * 
- * @param client pointer to client structure in otder to allocate, MUST be NULL. 
+ * itself.
+ *
+ * @param client pointer to client structure in otder to allocate, MUST be NULL.
  * @param id string ID name assigned to a client.
  * @param ip server ip representation with dotted standart.
  * @param hport server port number must be a valid port.
@@ -195,14 +195,14 @@ err_t init_client(client_t **client, const char *id, const char *ip, const uint1
 
         return CLIENT_FAILED_POLL_VEC;
     }
-    
+
     return OK;
 }
 
 /**
  * @brief Frees the memory allocated for a client structure and closes the
  * connection with the server.
- * 
+ *
  * @param client pointer to client structure MUST not be NULL.
  * @return err_t OK if client was freed successfully and connection was closed
  * or error otherwise.
@@ -242,7 +242,7 @@ err_t free_client(client_t **client) {
  * @brief Poll the available fds, the poll timeout is set to -1.
  * If the function returns with POLL_FAILED_TIMED_OUT the connection
  * is wrong or the fds is unavilable.
- * 
+ *
  * @param this client structure.
  * @return err_t OK if atleast one fd is available for specified events.
  */
@@ -257,7 +257,7 @@ err_t wait_for_ready_fds(client_t *this) {
 
     /* Should not timeout */
     if (poll(this->poll_vec->pfds, this->poll_vec->nfds, -1) <= 0) {
-        return POLL_FAILED_TIMED_OUT; 
+        return POLL_FAILED_TIMED_OUT;
     }
 
     return OK;
@@ -269,7 +269,7 @@ err_t wait_for_ready_fds(client_t *this) {
  * The client prints the server message without any additional checks,
  * because all the checks are made on the server side (supposing we have
  * a sequare and error prone connection).
- * 
+ *
  * @param this client structure.
  * @return err_t OK if message was received successfully,
  * OK_WITH_EXIT if server closed the connection with the client or
@@ -313,7 +313,7 @@ err_t process_ready_fds(client_t *this) {
  * of checks in order to send a valid request to the server, so
  * mismatches from the input are converted to the most significat
  * valid input.
- * 
+ *
  * @param this client structure.
  * @return err_t OK if the message was processed and sent successfully to the server
  * or error otherwise.
@@ -366,7 +366,7 @@ err_t process_subscribe_cmd(client_t *this) {
  * of checks in order to send a valid request to the server, so
  * mismatches from the input are converted to the most significat
  * valid input.
- * 
+ *
  * @param this client structure.
  * @return err_t OK if the message was processed and sent successfully to the server
  * or error otherwise.
@@ -413,7 +413,7 @@ err_t process_unsubscribe_cmd(client_t *this) {
  *
  * This function checks just for command descriptor not for valid input,
  * the input checks are made in prcoess_* functions.s
- * 
+ *
  * @param this client structure.
  * @return cmd_line_t valid command descriptor.
  */

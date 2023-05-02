@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #ifndef SERVER_UTILS_H_
@@ -59,8 +59,8 @@ typedef struct server_s {
 
 /**
  * @brief Inits the server by binding two sockets one for UDP and one for TCP connection.
- * 
- * 
+ *
+ *
  * @param server pointer to server structure, MUST be NULL.
  * @param hport a valid port number to open the connection.
  * @return err_t OK if the server was allocated and initialized successfully or
@@ -71,7 +71,7 @@ err_t init_server(server_t **server, const uint16_t hport);
 /**
  * @brief Frees the resources allocated by the server and closes all the connections
  * which generates closing actions for every active client.
- * 
+ *
  * @param server pointer to server structure, MUST not be NULL.
  * @return err_t OK if all the resources were freed and all connections
  * were closed or error otherwise.
@@ -82,7 +82,7 @@ err_t free_server(server_t **server);
  * @brief Poll the available fds, the poll timeout is set to -1.
  * If the function returns with POLL_FAILED_TIMED_OUT the connection
  * is wrong or the fds is unavilable.
- * 
+ *
  * @param this server structure.
  * @return err_t OK if atleast one fd is available for specified events.
  */
@@ -99,7 +99,7 @@ err_t wait_for_ready_fds(server_t *this);
  *
  * In case of a TCP POLLIN the server will process the message without sending
  * any messages back.
- * 
+ *
  * @param this server structure.
  * @return err_t OK if the messages were processed successfully or error otherwise.
  */
@@ -108,7 +108,7 @@ err_t process_ready_fds(server_t *this);
 /**
  * @brief Receives an input command from the stdin and processes it
  * by checking if the command is exit.
- * 
+ *
  * @param this server structure.
  * @return uint8_t 1 if command is exit or 0 otherwise.
  */

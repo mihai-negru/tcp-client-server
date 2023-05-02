@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,14 +19,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #include "./include/server_utils.h"
 
 /**
  * @brief Main server function in order to process clients requests.
- * 
+ *
  * @param argc MUST be 2 one for exec filename and one for a valid port number.
  * @param argv port number represented as a string
  * @return int EXIT_CODE_GREEN if success or EXIT_CODE_RED otherwise

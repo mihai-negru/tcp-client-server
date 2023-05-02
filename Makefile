@@ -10,7 +10,7 @@ RM			:= 	rm
 RFLAGS		:= 	-rf
 
 ZIP			:=	zip
-ZIP_NAME	:=	323CD_Negru_Mihai_Tema2.zip 
+ZIP_NAME	:=	323CD_Negru_Mihai_Tema2.zip
 ZIP_FLAGS	:= -r
 ZIP_FILES	:= 	src/ Makefile README.md
 
@@ -23,7 +23,7 @@ O_FILES		:= 	$(patsubst $(SRC)/%.c,%.o,$(SRC_FILES))
 .PHONY: clean
 .PRECIOUS: %.o
 
-all: $(EXEC_FILES)
+all: $(EXEC_FILES) clean_o
 
 %.o: $(SRC)/%.c
 	@$(CC) $(CFLAGS) -c $<

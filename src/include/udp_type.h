@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #ifndef UDP_TYPE_H_
@@ -33,7 +33,7 @@
 /**
  * @brief Enum class type to handle
  * the udp message types.
- * 
+ *
  */
 typedef enum udp_data_type_s {
     INT         = 0,
@@ -46,7 +46,7 @@ typedef enum udp_data_type_s {
  * @brief Union class type to store
  * a udp message data depending on the
  * udp message type.
- * 
+ *
  */
 typedef union udp_data_s {
     int32_t     INT;
@@ -58,7 +58,7 @@ typedef union udp_data_s {
 /**
  * @brief Struct class type containing
  * udp message metadata and exact data.
- * 
+ *
  */
 typedef struct udp_type_s {
     char                topic[MAX_TOPIC_LEN];
@@ -68,7 +68,7 @@ typedef struct udp_type_s {
 
 /**
  * @brief Parses a buffer into a udp message type.
- * 
+ *
  * @param udp_type_var pointer to memory location to parse the message.
  * @param buf pointer to buffer containing the message bytes.
  * @return err_t OK if parser executed successfully or UDP_* errors otherwise.
@@ -78,7 +78,7 @@ err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf);
 /**
  * @brief Prints a parsed udp message type on stderr
  * for debugging purposes.
- * 
+ *
  * @param udp_type_var pointer to udp message type.
  * @return err_t OK if printing went successfully.
  */

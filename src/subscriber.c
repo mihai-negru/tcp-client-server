@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,14 +19,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #include "./include/subscriber_utils.h"
 
 /**
  * @brief Main subscriber function in order to process client requests.
- * 
+ *
  * @param argc MUST be 4 one for exec filename, id, ip and a valid port number.
  * @param argv filename, client id, server ip address and server port number.
  * @return int EXIT_CODE_GREEN if success or EXIT_CODE_RED otherwise
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 
                 /* The stdin was not POLLIN so process the rest of the fds */
                 err = process_ready_fds(client);
-                
+
                 /* Connection with server was closed exit the main loop */
                 if (err == OK_WITH_EXIT) {
                     break;

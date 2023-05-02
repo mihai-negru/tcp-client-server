@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,16 +19,16 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #include "./include/udp_type.h"
 
 /**
  * @brief Parses a int udp message type.
- * 
+ *
  * @param udp_type_var pointer to memory location to parse the message.
- * @param buf pointer to buffer containing the message bytes. 
+ * @param buf pointer to buffer containing the message bytes.
  */
 static void parse_udp_int_type(udp_type_t *udp_type_var, char *buf) {
     uint8_t sign = *(uint8_t *)buf;
@@ -42,7 +42,7 @@ static void parse_udp_int_type(udp_type_t *udp_type_var, char *buf) {
 
 /**
  * @brief Parses a short real udp message type.
- * 
+ *
  * @param udp_type_var pointer to memory location to parse the message.
  * @param buf pointer to buffer containing the message bytes.
  */
@@ -52,9 +52,9 @@ static void parse_udp_short_real_type(udp_type_t *udp_type_var, char *buf) {
 
 /**
  * @brief Parses a float udp message type.
- * 
+ *
  * @param udp_type_var pointer to memory location to parse the message.
- * @param buf pointer to buffer containing the message bytes. 
+ * @param buf pointer to buffer containing the message bytes.
  */
 static void parse_udp_float_type(udp_type_t *udp_type_var, char *buf) {
     uint8_t sign = *(uint8_t *)buf;
@@ -68,7 +68,7 @@ static void parse_udp_float_type(udp_type_t *udp_type_var, char *buf) {
 
 /**
  * @brief Parses a string udp message type.
- * 
+ *
  * @param udp_type_var pointer to memory location to parse the message.
  * @param buf pointer to buffer containing the message bytes.
  */
@@ -79,7 +79,7 @@ static void parse_udp_string_type(udp_type_t *udp_type_var, char *buf) {
 
 /**
  * @brief Parses a buffer into a udp message type.
- * 
+ *
  * @param udp_type_var pointer to memory location to parse the message.
  * @param buf pointer to buffer containing the message bytes.
  * @return err_t OK if parser executed successfully or UDP_* errors otherwise.
@@ -88,7 +88,7 @@ err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf) {
     if (udp_type_var == NULL) {
         return UDP_INPUT_VAR_IS_NULL;
     }
-    
+
     if (buf == NULL) {
         return UDP_INPUT_BUF_IS_NULL;
     }
@@ -122,7 +122,7 @@ err_t parse_udp_type_from(udp_type_t *udp_type_var, char *buf) {
 /**
  * @brief Prints a parsed udp message type on stderr
  * for debugging purposes.
- * 
+ *
  * @param udp_type_var pointer to udp message type.
  * @return err_t OK if printing went successfully.
  */
@@ -133,7 +133,7 @@ err_t print_udp_type(udp_type_t *udp_type_var) {
 
     fprintf(stderr, "UDP Package:\n");
     fprintf(stderr, "  topic: %s,\n", udp_type_var->topic);
-    
+
     switch (udp_type_var->type) {
         case INT:
             fprintf(stderr, "  type: INT,\n");

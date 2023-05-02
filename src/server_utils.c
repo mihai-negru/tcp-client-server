@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,14 +19,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #include "./include/server_utils.h"
 
 /**
  * @brief Inits a UDP socket for the server.
- * 
+ *
  * @param server server structure.
  * @param hport server port number.
  * @return int 0 if init went successfully or -1 otherwise.
@@ -56,7 +56,7 @@ static int init_server_udp_socket(server_t *server, const uint16_t hport) {
 
 /**
  * @brief Inits a TCP socket for the server.
- * 
+ *
  * @param server server structure.
  * @param hport server port number.
  * @return int 0 if init went successfully or -1 otherwise.
@@ -94,7 +94,7 @@ static int init_server_tcp_socket(server_t *server, const uint16_t hport) {
 
 /**
  * @brief Inits the poll vector for the server and adds the stdin and UDP, TCP server socket.
- * 
+ *
  * @param server server structure.
  * @return int 0 if poll vector was initialized successfully or -1 otherwise.
  */
@@ -128,7 +128,7 @@ static int init_server_poll_vec(server_t *server) {
  * @brief Inits the required buffers, structures in order to maintain the
  * connection with the clients as protocol packages structures to send and
  * receive messages over the TCP connection.
- * 
+ *
  * @param server server structure.
  * @return int 0 if the allocation went successfully or -1 otherwise.
  */
@@ -173,7 +173,7 @@ static int init_server_buffers(server_t *server) {
 
         return -1;
     }
-    
+
     /* Clear junk bytes from the structures */
     memset(server->buf, 0, MAX_SERVER_BUFLEN);
     memset(server->cmd, 0, MAX_CMD_LEN);
@@ -185,7 +185,7 @@ static int init_server_buffers(server_t *server) {
 
 /**
  * @brief Inits the server by binding two sockets one for UDP and one for TCP connection.
- * 
+ *
  * @param server pointer to server structure, MUST be NULL.
  * @param hport a valid port number to open the connection.
  * @return err_t OK if the server was allocated and initialized successfully or
@@ -211,7 +211,7 @@ err_t init_server(server_t **server, const uint16_t hport) {
 
         return SERVER_FAILED_ALLOCATION;
     }
-    
+
     if (init_server_udp_socket(*server, hport) < 0) {
         free((*server)->buf);
         free((*server)->cmd);
@@ -267,14 +267,14 @@ err_t init_server(server_t **server, const uint16_t hport) {
 
         return SERVER_FAILED_CLIENTS_VEC;
     }
-    
+
     return OK;
 }
 
 /**
  * @brief Frees the resources allocated by the server and closes all the connections
  * which generates closing actions for every active client.
- * 
+ *
  * @param server pointer to server structure, MUST not be NULL.
  * @return err_t OK if all the resources were freed and all connections
  * were closed or error otherwise.
@@ -322,7 +322,7 @@ err_t free_server(server_t **server) {
  * @brief Poll the available fds, the poll timeout is set to -1.
  * If the function returns with POLL_FAILED_TIMED_OUT the connection
  * is wrong or the fds is unavilable.
- * 
+ *
  * @param this server structure.
  * @return err_t OK if atleast one fd is available for specified events.
  */
@@ -337,7 +337,7 @@ err_t wait_for_ready_fds(server_t *this) {
 
     /* Should not timeout */
     if (poll(this->poll_vec->pfds, this->poll_vec->nfds, -1) <= 0) {
-        return POLL_FAILED_TIMED_OUT; 
+        return POLL_FAILED_TIMED_OUT;
     }
 
     return OK;
@@ -346,7 +346,7 @@ err_t wait_for_ready_fds(server_t *this) {
 /**
  * @brief Parses a udp_type_t class into a continuous buffer to send over
  * a TCP connection.
- * 
+ *
  * @param this server structure.
  * @param msg pointer to udp_type_t class in order to parse.
  * @return err_t OK if message was parsed correctly or
@@ -395,7 +395,7 @@ static err_t pack_topic_to_tcp_msg(server_t *this, udp_type_t *msg) {
  * @brief Processes a TCP message from the client side, the message
  * is parsed into internal structures and additional function are called
  * to process the request (subscribe/unsubscribe).
- * 
+ *
  * @param this server structure.
  * @param client_fd valid tcp socket file descriptor assigned for a client.
  * @return err_t OK if the message was processed successfully or error otherwise.
@@ -432,7 +432,7 @@ static err_t process_server_tcp_msg(server_t *this, int client_fd) {
  * @brief Adds a UDP message into the udp messages queue.
  * Internal local storage to store udp messages for futher
  * processing or for Store and Forward functionality.
- * 
+ *
  * @param this server structure.
  * @return err_t OK if the udp message was added successfully or
  * error otherwise.
@@ -474,7 +474,7 @@ static err_t add_server_udp_msg(server_t *this) {
  * If one client is disconnected, but has the store-and-forward
  * functionality the a pointer to the message will be stacked
  * in a local client queue and upon reconnection the message will be sent.
- * 
+ *
  * @param this server structure.
  * @return err_t OK if the udp message was sent to all active clients or
  * error otherwise.
@@ -539,7 +539,7 @@ static err_t transmit_topic_to_clients(server_t *this) {
  *
  * The process repeats every time there is a reconnection and any messages
  * are ready for sending.
- * 
+ *
  * @param this server structure.
  * @param client_fd new valid tcp socket file descriptor for the client.
  * @return err_t OK if any of the udp messages were send to the client
@@ -552,7 +552,7 @@ static err_t retransmit_topics_to_client(server_t *this, int client_fd) {
     for (size_t iter = 0; iter < this->clients->len; ++iter) {
         if (this->clients->entities[iter].fd == client_fd) {
             size_t remaining_msgs = this->clients->entities[iter].ready_msgs_len;
-            
+
             /*
              * Start sending topics messages until sent all
              * or interrupted by closing connection
@@ -569,14 +569,14 @@ static err_t retransmit_topics_to_client(server_t *this, int client_fd) {
                 if ((err = send_tcp_msg(client_fd, (void *)this->send_msg, sizeof *this->send_msg)) != OK) {
                     this->clients->entities[iter].ready_msgs_len = remaining_msgs;
                     debug_msg(err);
-                    
+
                     break;
                 }
             }
 
             /* No udp messages left */
             this->clients->entities[iter].ready_msgs_len = 0;
-            
+
             return OK;
         }
     }
@@ -596,7 +596,7 @@ static err_t retransmit_topics_to_client(server_t *this, int client_fd) {
  *
  * In case of a TCP POLLIN the server will process the message without sending
  * any messages back.
- * 
+ *
  * @param this server structure.
  * @return err_t OK if the messages were processed successfully or error otherwise.
  */
@@ -743,7 +743,7 @@ err_t process_ready_fds(server_t *this) {
 /**
  * @brief Receives an input command from the stdin and processes it
  * by checking if the command is exit.
- * 
+ *
  * @param this server structure.
  * @return uint8_t 1 if command is exit or 0 otherwise.
  */

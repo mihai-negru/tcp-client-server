@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #ifndef TCP_TYPE_H_
@@ -31,7 +31,7 @@
 
 /**
  * @brief Protocol data structure over the TCP Protocol.
- * 
+ *
  */
 typedef struct __attribute__((__packed__)) tcp_msg_s {
     uint16_t    len;
@@ -40,7 +40,7 @@ typedef struct __attribute__((__packed__)) tcp_msg_s {
 
 /**
  * @brief Send an exact length message over a tcp socket.
- * 
+ *
  * @param tcp_socket socket fd to send the message
  * @param buf message buffer.
  * @param buf_len number of bytes to send over socket.
@@ -52,7 +52,7 @@ err_t send_tcp_msg(const int tcp_socket, void *buf, size_t buf_len);
 
 /**
  * @brief Receive an exact length message over a tcp socket.
- * 
+ *
  * @param tcp_socket socket fd to receive the message
  * @param buf message buffer.
  * @param buf_len number of bytes to receive over socket.

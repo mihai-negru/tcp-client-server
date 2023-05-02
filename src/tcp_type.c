@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,14 +19,14 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #include "./include/tcp_type.h"
 
 /**
  * @brief Send an exact length message over a tcp socket.
- * 
+ *
  * @param tcp_socket socket fd to send the message
  * @param buf message buffer.
  * @param buf_len number of bytes to send over socket.
@@ -48,7 +48,7 @@ err_t send_tcp_msg(const int tcp_socket, void *buf, size_t buf_len) {
     }
 
     size_t bytes_send = 0;
-    
+
     ssize_t tcp_bytes = 0;
     while (bytes_send < buf_len) {
         tcp_bytes = send(tcp_socket, (uint8_t *)buf + bytes_send, buf_len - bytes_send, 0);
@@ -67,7 +67,7 @@ err_t send_tcp_msg(const int tcp_socket, void *buf, size_t buf_len) {
 
 /**
  * @brief Receive an exact length message over a tcp socket.
- * 
+ *
  * @param tcp_socket socket fd to receive the message
  * @param buf message buffer.
  * @param buf_len number of bytes to receive over socket.
@@ -89,7 +89,7 @@ err_t recv_tcp_msg(const int tcp_socket, void *buf, size_t buf_len) {
     }
 
     size_t bytes_send = 0;
-    
+
     ssize_t tcp_bytes = 0;
     while (bytes_send < buf_len) {
         tcp_bytes = recv(tcp_socket, (uint8_t *)buf + bytes_send, buf_len - bytes_send, 0);

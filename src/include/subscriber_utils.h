@@ -3,7 +3,7 @@
  * @author Mihai Negru (determinant289@gmail.com)
  * @version 1.0.0
  * @date 2023-05-02
- * 
+ *
  * @copyright Copyright (C) 2023-2024 Mihai Negru <determinant289@gmail.com>
  * This file is part of tcp-client-server.
  *
@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with tcp-client-server.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #ifndef SUBSCRIBER_UTILS_H_
@@ -44,7 +44,7 @@
 /**
  * @brief Enum class type to maintain valid
  * command definitions.
- * 
+ *
  */
 typedef enum cmd_line_s {
     SUBSCRIBE       = 0,
@@ -58,7 +58,7 @@ typedef enum cmd_line_s {
  * a clients (subscriber) type, containg
  * data and metadata for processing responses
  * and requests.
- * 
+ *
  */
 typedef struct client_s {
     char                    *id;            /* Unique client ID */
@@ -76,9 +76,9 @@ typedef struct client_s {
  * its ID, after getting the ID the server will decide if the client has
  * the permission to send requests, if nothing is sent back from the server
  * the client is available to send request, otherwise the client will shut
- * itself. 
- * 
- * @param client pointer to client structure in otder to allocate, MUST be NULL. 
+ * itself.
+ *
+ * @param client pointer to client structure in otder to allocate, MUST be NULL.
  * @param id string ID name assigned to a client.
  * @param ip server ip representation with dotted standart.
  * @param hport server port number must be a valid port.
@@ -90,7 +90,7 @@ err_t init_client(client_t **client, const char *id, const char *ip, const uint1
 /**
  * @brief Frees the memory allocated for a client structure and closes the
  * connection with the server.
- * 
+ *
  * @param client pointer to client structure MUST not be NULL.
  * @return err_t OK if client was freed successfully and connection was closed
  * or error otherwise.
@@ -101,7 +101,7 @@ err_t free_client(client_t **client);
  * @brief Poll the available fds, the poll timeout is set to -1.
  * If the function returns with POLL_FAILED_TIMED_OUT the connection
  * is wrong or the fds is unavilable.
- * 
+ *
  * @param this client structure.
  * @return err_t OK if atleast one fd is available for specified events.
  */
@@ -113,7 +113,7 @@ err_t wait_for_ready_fds(client_t *this);
  * The client prints the server message without any additional checks,
  * because all the checks are made on the server side (supposing we have
  * a sequare and error prone connection).
- * 
+ *
  * @param this client structure.
  * @return err_t OK if message was received successfully,
  * OK_WITH_EXIT if server closed the connection with the client or
@@ -127,7 +127,7 @@ err_t process_ready_fds(client_t *this);
  * of checks in order to send a valid request to the server, so
  * mismatches from the input are converted to the most significat
  * valid input.
- * 
+ *
  * @param this client structure.
  * @return err_t OK if the message was processed and sent successfully to the server
  * or error otherwise.
@@ -140,7 +140,7 @@ err_t process_subscribe_cmd(client_t *this);
  * of checks in order to send a valid request to the server, so
  * mismatches from the input are converted to the most significat
  * valid input.
- * 
+ *
  * @param this client structure.
  * @return err_t OK if the message was processed and sent successfully to the server
  * or error otherwise.
@@ -155,7 +155,7 @@ err_t process_unsubscribe_cmd(client_t *this);
  *
  * This function checks just for command descriptor not for valid input,
  * the input checks are made in prcoess_* functions.s
- * 
+ *
  * @param this client structure.
  * @return cmd_line_t valid command descriptor.
  */
