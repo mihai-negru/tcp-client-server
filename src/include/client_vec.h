@@ -4,7 +4,6 @@
 #include "./utils.h"
 #include "./udp_type.h"
 
-#define REALLOC_FACTOR 2
 #define INIT_TOPICS_CAPACITY 10
 
 typedef enum client_stataus_s {

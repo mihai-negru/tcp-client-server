@@ -3,8 +3,6 @@
 
 #include "./utils.h"
 
-#define REALLOC_FACTOR 2
-
 typedef struct poll_vec_s {
     struct pollfd *pfds;
     nfds_t nfds;
