@@ -66,6 +66,11 @@ static int init_server_tcp_socket(server_t *server, const uint16_t hport) {
         return server->tcp_socket;
     }
 
+    /* Disable Nagle algorithm for the TCP socket */
+    if (setsockopt(server->tcp_socket, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof (int)) < 0) {
+        return -1;
+    }
+
     memset(&server->tcp_addr, 0, sizeof server->tcp_addr);
 
     server->tcp_addr.sin_family = AF_INET;
@@ -81,11 +86,6 @@ static int init_server_tcp_socket(server_t *server, const uint16_t hport) {
     }
 
     if (listen(server->tcp_socket, MAX_LISTEN_SOCKET) < 0) {
-        return -1;
-    }
-
-    /* Disable Nagle algorithm for the TCP socket */
-    if (setsockopt(server->tcp_socket, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof (int)) < 0) {
         return -1;
     }
 

@@ -37,6 +37,11 @@ static int init_client_tcp_socket(client_t *client, const char *ip, const uint16
         return client->tcp_socket;
     }
 
+    /* Disable Nagle algorithm for the TCP socket */
+    if (setsockopt(client->tcp_socket, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof (int)) < 0) {
+        return -1;
+    }
+
     memset(&client->tcp_addr, 0, sizeof client->tcp_addr);
 
     client->tcp_addr.sin_family = AF_INET;
